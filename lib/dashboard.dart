@@ -43,7 +43,7 @@ class DashboardPage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text("Welcome back, chris!",
+              Text("Hey Chris🖐..",
                   style: TextStyle(fontSize: 20, color: Colors.white)),
               SizedBox(height: 24),
               Text("Connected Platforms",
@@ -86,26 +86,27 @@ Widget _buildPlatformCard(String title, String desc, String imageAssetPath) {
   return Card(
     color: Color(0xFF0F172A),
     child: SizedBox(
-      height: 180, // Fixed height for all cards
+      height: 60,
+      width:10, // Fixed height for all cards
       child: Padding(
-        padding: EdgeInsets.all(10),
+        padding: EdgeInsets.all(2),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(title,
                 style: TextStyle(
                     color: Colors.white,
-                    fontSize: 16,
+                    fontSize: 15,
                     fontWeight: FontWeight.bold)),
-            SizedBox(height: 8),
+         
             Text(desc, style: TextStyle(color: Colors.white70)),
             Spacer(),
             Align(
               alignment: Alignment.bottomRight,
               child: Image.asset(
                 imageAssetPath,
-                height: 32,
-                width: 32,
+                height: 50,
+                width: 50,
               ),
             ),
           ],
@@ -117,21 +118,27 @@ Widget _buildPlatformCard(String title, String desc, String imageAssetPath) {
 
 
   Widget _buildStatsCard(String title, String count, String subtitle) {
-    return Card(
-      color: Color(0xFF1E293B),
+     return Card(
+    color: Color(0xFF0F172A),
+    child: SizedBox(
+      height: 120,
+      width:10, // Fixed height for all cards
       child: Padding(
-        padding: EdgeInsets.all(12),
+        padding: EdgeInsets.all(5),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title, style: TextStyle(color: Colors.white70, fontSize: 14)),
+            Text(title,
+                style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold)),
             SizedBox(height: 4),
-            Text(count, style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold)),
-            SizedBox(height: 8),
-            Text(subtitle, style: TextStyle(color: Colors.white60, fontSize: 12)),
+      
           ],
         ),
       ),
-    );
+    ),
+  );
   }
 }

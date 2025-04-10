@@ -53,6 +53,25 @@ class _SignUpPageState extends State<SignUpPage> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                  Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: Colors.white10,
+                    borderRadius: BorderRadius.circular(30),
+                    border: Border.all(color: Colors.white30),
+                  ),
+                  child: const Text(
+                    "Trackpro",
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      letterSpacing: 1.5,
+                    ),
+                  ),
+                ),
+                SizedBox(height:20),
                 const CircleAvatar(
                   radius: 30,
                   backgroundColor: Colors.white30,
@@ -68,10 +87,10 @@ class _SignUpPageState extends State<SignUpPage> {
                 ElevatedButton(
                   onPressed: registerUser,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFF00A67E),
+                    backgroundColor: Color.fromARGB(255, 0, 183, 140),
                     padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 15),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(6),
+                      borderRadius: BorderRadius.circular(8),
                     ),
                   ),
                   child: const Text("SIGN UP", style: TextStyle(fontSize: 16,color: Colors.white, fontWeight: FontWeight.bold)),
@@ -81,7 +100,7 @@ class _SignUpPageState extends State<SignUpPage> {
                   onPressed: () {
                     Navigator.pop(context);
                   },
-                  child: const Text("Already have an account? Login", style: TextStyle(color: Colors.white70)),
+                  child: const Text("Already have an acc? Login", style: TextStyle(color: Colors.white70)),
                 ),
               ],
             ),
