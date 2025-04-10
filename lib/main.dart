@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:trackpro/SignUpPage.dart';
+import 'package:trackpro/dashboard.dart';
 import 'package:trackpro/login.dart';
  // generated automatically
 
@@ -31,7 +33,12 @@ class MyApp extends StatelessWidget {
         brightness: Brightness.dark,
         useMaterial3: true,
       ),
-      home: const LoginPage(),
+      initialRoute: '/dash',
+        routes: {
+        '/dash': (context) => DashboardPage(),
+        '/login':(context)=>LoginPage(),
+        '/signup':(context)=>SignUpPage()
+        }
     );
   }
 }
