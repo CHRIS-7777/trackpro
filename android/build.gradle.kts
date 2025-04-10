@@ -1,7 +1,13 @@
-allprojects {
+buildscript {
+    ext.kotlin_version = '2.1.0'  // You can update to 1.9.21 if needed
     repositories {
         google()
         mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.3.0'
+        classpath 'com.google.gms:google-services:4.4.2'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
 
