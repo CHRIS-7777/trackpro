@@ -1,5 +1,5 @@
 buildscript {
-    ext.kotlin_version = '2.1.0'  // You can update to 1.9.21 if needed
+    ext.kotlin_version = '1.8.22'  // You can update to 1.9.21 if needed
     repositories {
         google()
         mavenCentral()

@@ -63,17 +63,7 @@ class _LoginPageState extends State<LoginPage> {
                 const SizedBox(height: 10),
                 _buildTextField(Icons.lock, "Password", isPassword: true, controller: passwordController),
                 const SizedBox(height: 10),
-                Row(
-                  children: [
-                    Checkbox(value: true, onChanged: (_) {}),
-                    const Text("Remember me", style: TextStyle(color: Colors.white)),
-                    const Spacer(),
-                    TextButton(
-                      onPressed: () {},
-                      child: const Text("Forgot Password?", style: TextStyle(color: Colors.white70)),
-                    )
-                  ],
-                ),
+              
                 const SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: loginUser,
