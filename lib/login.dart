@@ -119,7 +119,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget _buildTextField(IconData icon, String hint,
       {bool isPassword = false, required TextEditingController controller}) {
    return Container(
-  width: 400, // Adjust this value to make it wider/narrower
+  width: 1000, // Adjust this value to make it wider/narrower
   child: TextField(
     controller: controller,
     obscureText: isPassword,
