@@ -35,10 +35,16 @@ class MyApp extends StatelessWidget {
       ),
       initialRoute: '/dash',
         routes: {
-        '/dash': (context) => DashboardPage(),
-        '/login':(context)=>LoginPage(),
-        '/signup':(context)=>SignUpPage()
-        }
+  '/dash': (context) => DashboardPage(),
+  '/login': (context) => LoginPage(),
+  '/signup': (context) => SignUpPage(),
+  // '/resumes': (context) => ResumesPage(),         // define this screen
+  // '/create-resume': (context) => CreateResumePage(),
+  // '/projects': (context) => ProjectsPage(),
+  // '/explore': (context) => ExplorePage(),
+  // '/settings': (context) => SettingsPage(),
+},
+
     );
   }
 }

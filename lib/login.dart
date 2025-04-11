@@ -121,6 +121,7 @@ class _LoginPageState extends State<LoginPage> {
    return Container(
   width: 1000, // Adjust this value to make it wider/narrower
   child: TextField(
+    
     controller: controller,
     obscureText: isPassword,
     style: const TextStyle(color: Colors.white),
