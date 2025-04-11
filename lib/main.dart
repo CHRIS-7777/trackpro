@@ -4,6 +4,7 @@ import 'package:trackpro/SignUpPage.dart';
 import 'package:trackpro/dashboard.dart';
 import 'package:trackpro/homepage.dart';
 import 'package:trackpro/login.dart';
+import 'package:trackpro/profile.dart';
  // generated automatically
 
 void main() async {
@@ -40,6 +41,7 @@ class MyApp extends StatelessWidget {
   '/login': (context) => LoginPage(),
   '/signup': (context) => SignUpPage(),
     '/home': (context) => HomePage(),
+     '/profile': (context) => ProfilePage(),
   // '/resumes': (context) => ResumesPage(),         // define this screen
   // '/create-resume': (context) => CreateResumePage(),
   // '/projects': (context) => ProjectsPage(),

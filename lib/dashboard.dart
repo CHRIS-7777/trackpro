@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:fl_chart/fl_chart.dart';
 
 void _launchURL(String url) async {
   final Uri uri = Uri.parse(url);
@@ -37,7 +38,12 @@ class _DashboardPageState extends State<DashboardPage> {
             const DrawerHeader(
               decoration: BoxDecoration(color: Colors.black),
               child: Text("Menu",
-                  style: TextStyle(color: Colors.white, fontSize: 24)),
+                  style: TextStyle(color: Colors.greenAccent, fontSize: 24)),
+            ),
+             ListTile(
+              leading: Icon(Icons.article),
+              title: Text("Profile"),
+              onTap: () => Navigator.pushNamed(context, '/profile'),
             ),
             ListTile(
               leading: Icon(Icons.dashboard),
@@ -49,12 +55,12 @@ class _DashboardPageState extends State<DashboardPage> {
               title: Text("Create Resume"),
               onTap: () => Navigator.pushNamed(context, '/create-resume'),
             ),
-           ListTile(
+            ListTile(
               leading: Icon(Icons.article),
-              title: Text("Resumes"),
+              title: Text("Settings"),
               onTap: () => Navigator.pushNamed(context, '/resumes'),
             ),
-              ListTile(
+            ListTile(
               leading: Icon(Icons.logout),
               title: Text("Logout"),
               onTap: () => Navigator.pushNamed(context, '/login'),
@@ -63,8 +69,16 @@ class _DashboardPageState extends State<DashboardPage> {
         ),
       ),
       appBar: AppBar(
-        title: const Text("Dashboard"),
+        title: const Text("DashBoard",style:TextStyle(fontSize: 20)),
         backgroundColor: Colors.black,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.account_circle),
+            onPressed: () {
+              Navigator.pushNamed(context, '/profile');
+            },
+          )
+        ],
       ),
       body: _pages[_currentIndex],
       bottomNavigationBar: Container(
@@ -75,32 +89,31 @@ class _DashboardPageState extends State<DashboardPage> {
             end: Alignment.bottomCenter,
           ),
         ),
-       child: BottomNavigationBar(
-  currentIndex: _currentIndex,
-  backgroundColor: Colors.transparent,
-  elevation: 0,
-  selectedItemColor: Colors.greenAccent,
-  unselectedItemColor: Colors.white,
-  showUnselectedLabels: false,
-  type: BottomNavigationBarType.fixed,
-  onTap: (index) {
-    setState(() {
-      _currentIndex = index;
-    });
-    final routes = ['/projects', '/suggest', '/add', '/explore', '/resume'];
-    if (index < routes.length) {
-      Navigator.pushNamed(context, routes[index]);
-    }
-  },
-  items: const [
-    BottomNavigationBarItem(icon: Icon(Icons.folder), label: 'Projects'),
-    BottomNavigationBarItem(icon: Icon(Icons.recommend), label: 'Suggest'),
-    BottomNavigationBarItem(icon: Icon(Icons.add), label: 'Add'),
-    BottomNavigationBarItem(icon: Icon(Icons.explore), label: 'Explore'),
-    BottomNavigationBarItem(icon: Icon(Icons.document_scanner), label: 'Resume'),
-  ],
-),
-
+        child: BottomNavigationBar(
+          currentIndex: _currentIndex,
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          selectedItemColor: Colors.greenAccent,
+          unselectedItemColor: Colors.white,
+          showUnselectedLabels: false,
+          type: BottomNavigationBarType.fixed,
+          onTap: (index) {
+            setState(() {
+              _currentIndex = index;
+            });
+            final routes = ['/projects', '/suggest', '/add', '/explore', '/resume'];
+            if (index < routes.length) {
+              Navigator.pushNamed(context, routes[index]);
+            }
+          },
+          items: const [
+            BottomNavigationBarItem(icon: Icon(Icons.folder), label: 'Projects'),
+            BottomNavigationBarItem(icon: Icon(Icons.recommend), label: 'Suggest'),
+            BottomNavigationBarItem(icon: Icon(Icons.add), label: 'Add'),
+            BottomNavigationBarItem(icon: Icon(Icons.explore), label: 'Explore'),
+            BottomNavigationBarItem(icon: Icon(Icons.document_scanner), label: 'Resume'),
+          ],
+        ),
       ),
     );
   }
@@ -156,37 +169,86 @@ class DashboardContent extends StatelessWidget {
               crossAxisSpacing: 16,
               mainAxisSpacing: 16,
               children: [
-                _buildPlatformCard(
-                    "GitHub", "Connect", "assets/github.png", () => _launchURL("https://github.com")),
-                _buildPlatformCard(
-                    "LinkedIn", "Connect ", "assets/linkedin.png", () => _launchURL("https://linkedin.com")),
-                _buildPlatformCard(
-                    "Credly", "Connect ", "assets/credly.png", () => _launchURL("https://credly.com")),
-                _buildPlatformCard(
-                    "LeetCode", "Connect", "assets/leetcode.png", () => _launchURL("https://leetcode.com")),
+                _buildPlatformCard("GitHub", "Connect", "assets/github.png", () => _launchURL("https://github.com")),
+                _buildPlatformCard("LinkedIn", "Connect ", "assets/linkedin.png", () => _launchURL("https://linkedin.com")),
+                _buildPlatformCard("Credly", "Connect ", "assets/credly.png", () => _launchURL("https://credly.com")),
+                _buildPlatformCard("LeetCode", "Connect", "assets/leetcode.png", () => _launchURL("https://leetcode.com")),
               ],
             ),
             const SizedBox(height: 24),
             Row(
               children: [
-                Expanded(
-                    child: _buildStatsCard(
-                        "Total Resumes", "0", "Create your first resume")),
-                const SizedBox(width: 16),
-                Expanded(
-                    child: _buildStatsCard(
-                        "Projects", "2", "Projects saved in your profile")),
+                Expanded(child: _buildStatsCard("Total Resumes", "0", "Create your first resume")),
               ],
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(child: _buildStatsCard("Projects", "2", "Projects saved in your profile")),
+              ],
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              "Weekly Activity",
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 200,
+              width: 540,
+              child: LineChart(
+                LineChartData(
+                  titlesData: FlTitlesData(
+                    leftTitles: AxisTitles(
+                      sideTitles: SideTitles(showTitles: true),
+                    ),
+                    bottomTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        getTitlesWidget: (value, meta) {
+                          final days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+                          return Text(
+                            days[value.toInt()],
+                            style: const TextStyle(color: Colors.white70, fontSize: 12),
+                          );
+                        },
+                        interval: 1,
+                      ),
+                    ),
+                  ),
+                  gridData: FlGridData(show: true),
+                  borderData: FlBorderData(show: true),
+                  lineBarsData: [
+                    LineChartBarData(
+                      isCurved: true,
+                      color: Colors.greenAccent,
+                      barWidth: 3,
+                      belowBarData: BarAreaData(show: true, color: Colors.greenAccent.withOpacity(0.2)),
+                      spots: const [
+                        FlSpot(0, 2),
+                        FlSpot(1, 4),
+                        FlSpot(2, 1),
+                        FlSpot(3, 5),
+                        FlSpot(4, 3),
+                        FlSpot(5, 4.5),
+                        FlSpot(6, 2),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            )
           ],
         ),
       ),
     );
   }
 
-  static Widget _buildPlatformCard(
-      String title, String desc, String imageAssetPath, VoidCallback onTap) {
+  static Widget _buildPlatformCard(String title, String desc, String imageAssetPath, VoidCallback onTap) {
     return LayoutBuilder(
       builder: (context, constraints) {
         return InkWell(
@@ -194,8 +256,7 @@ class DashboardContent extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           child: Card(
             color: const Color(0xFF0F172A),
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             child: Padding(
               padding: const EdgeInsets.all(12),
               child: Column(
@@ -241,12 +302,12 @@ class DashboardContent extends StatelessWidget {
     );
   }
 
-  static Widget _buildStatsCard(
-      String title, String count, String subtitle) {
+  static Widget _buildStatsCard(String title, String count, String subtitle) {
     return Card(
       color: const Color(0xFF0F172A),
       child: SizedBox(
-        height: 180,
+        height: 130,
+        width: 130,
         child: Padding(
           padding: const EdgeInsets.all(8),
           child: Column(
