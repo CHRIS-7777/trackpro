@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:trackpro/SignUpPage.dart';
 import 'package:trackpro/dashboard.dart';
+import 'package:trackpro/homepage.dart';
 import 'package:trackpro/login.dart';
  // generated automatically
 
@@ -38,6 +39,7 @@ class MyApp extends StatelessWidget {
   '/dash': (context) => DashboardPage(),
   '/login': (context) => LoginPage(),
   '/signup': (context) => SignUpPage(),
+    '/home': (context) => HomePage(),
   // '/resumes': (context) => ResumesPage(),         // define this screen
   // '/create-resume': (context) => CreateResumePage(),
   // '/projects': (context) => ProjectsPage(),

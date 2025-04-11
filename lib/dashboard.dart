@@ -24,6 +24,7 @@ class _DashboardPageState extends State<DashboardPage> {
     Placeholder(color: Colors.transparent),
     Placeholder(color: Colors.transparent),
     Placeholder(color: Colors.transparent),
+    Placeholder(color: Colors.transparent),
   ];
 
   @override
@@ -35,38 +36,28 @@ class _DashboardPageState extends State<DashboardPage> {
           children: [
             const DrawerHeader(
               decoration: BoxDecoration(color: Colors.black),
-              child: Text("TrackPro",
+              child: Text("Menu",
                   style: TextStyle(color: Colors.white, fontSize: 24)),
             ),
             ListTile(
               leading: Icon(Icons.dashboard),
               title: Text("Dashboard"),
-              onTap: () => Navigator.pushNamed(context, '/dashboard'),
-            ),
-            ListTile(
-              leading: Icon(Icons.article),
-              title: Text("Resumes"),
-              onTap: () => Navigator.pushNamed(context, '/resumes'),
+              onTap: () => Navigator.pushNamed(context, '/dash'),
             ),
             ListTile(
               leading: Icon(Icons.create),
               title: Text("Create Resume"),
               onTap: () => Navigator.pushNamed(context, '/create-resume'),
             ),
-            ListTile(
-              leading: Icon(Icons.folder),
-              title: Text("Projects"),
-              onTap: () => Navigator.pushNamed(context, '/projects'),
+           ListTile(
+              leading: Icon(Icons.article),
+              title: Text("Resumes"),
+              onTap: () => Navigator.pushNamed(context, '/resumes'),
             ),
-            ListTile(
-              leading: Icon(Icons.explore),
-              title: Text("Explore"),
-              onTap: () => Navigator.pushNamed(context, '/explore'),
-            ),
-            ListTile(
-              leading: Icon(Icons.settings),
-              title: Text("Settings"),
-              onTap: () => Navigator.pushNamed(context, '/settings'),
+              ListTile(
+              leading: Icon(Icons.logout),
+              title: Text("Logout"),
+              onTap: () => Navigator.pushNamed(context, '/login'),
             ),
           ],
         ),
@@ -138,8 +129,8 @@ class DashboardContent extends StatelessWidget {
                   child: Text(
                     "TRACKPRO",
                     style: TextStyle(
-                      fontSize: 40,
-                      color: Color.fromARGB(255, 30, 253, 18),
+                      fontSize: 30,
+                      color: Colors.greenAccent,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
