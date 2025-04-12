@@ -35,7 +35,7 @@ class MyApp extends StatelessWidget {
         brightness: Brightness.dark,
         useMaterial3: true,
       ),
-      initialRoute: '/login',
+      initialRoute: '/dash',
         routes: {
   '/dash': (context) => DashboardPage(),
   '/login': (context) => LoginPage(),

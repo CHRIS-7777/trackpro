@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -7,26 +8,25 @@ class ProfilePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF0F172A),
-    appBar: AppBar(
-  backgroundColor: Colors.transparent,
-  elevation: 0,
-  leading: IconButton(
-    icon: const Icon(Icons.arrow_back, color: Colors.white),
-    onPressed: () => Navigator.pushNamed(context, '/dash')
-  ),
-  title: const Text(
-    "Profile",
-    style: TextStyle(
-      fontSize: 24,
-      fontWeight: FontWeight.bold,
-      color: Colors.greenAccent,
-      shadows: [
-        Shadow(color: Colors.greenAccent, blurRadius: 15),
-      ],
-    ),
-  ),
-),
-
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pushNamed(context, '/dash'),
+        ),
+        title: const Text(
+          "Profile",
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Colors.greenAccent,
+            shadows: [
+              Shadow(color: Colors.greenAccent, blurRadius: 15),
+            ],
+          ),
+        ),
+      ),
       body: LayoutBuilder(
         builder: (context, constraints) {
           double maxContentWidth = constraints.maxWidth > 800 ? 800 : constraints.maxWidth;
@@ -40,6 +40,10 @@ class ProfilePage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildHeader(),
+                    const SizedBox(height: 16),
+                    _glowText("Platforms", fontSize: 20),
+                    const SizedBox(height: 10),
+                    _buildPlatformRow(),
                     const SizedBox(height: 20),
                     _buildStatsRow(),
                     const SizedBox(height: 20),
@@ -73,91 +77,131 @@ class ProfilePage extends StatelessWidget {
   }
 
   Widget _buildHeader() {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-           const CircleAvatar(
-  radius: 40,
-  backgroundColor: Colors.white,
-  child: Icon(
-    Icons.person, // outlined person icon
-    size: 70,
-    color: Colors.black,
-  ),
-),
-
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _glowText("Chris"),
-                  const Text("chris@example.com", style: TextStyle(color: Colors.grey)),
-                  const SizedBox(height: 6),
-                  Wrap(
-                    spacing: 1,
-                    children: const [
-                      Chip(label: Text("Student",style: TextStyle(color: Colors.white))),
-                      Chip(label: Text("3rd Year", style: TextStyle(color: Colors.white))),
-                      Chip(label: Text("Computer Science",style: TextStyle(color: Colors.white))),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  const Text(
-                    "Passionate programmer focused on full-stack development and competitive programming.",
-                    style: TextStyle(color: Colors.white70),
-                  )
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const CircleAvatar(
+          radius: 40,
+          backgroundColor: Colors.white,
+          child: Icon(
+            Icons.person,
+            size: 70,
+            color: Colors.black,
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _glowText("Chris"),
+              const Text("chris@example.com", style: TextStyle(color: Colors.grey)),
+              const SizedBox(height: 6),
+              Wrap(
+                spacing: 1,
+                children: const [
+                  Chip(label: Text("Student", style: TextStyle(color: Colors.white))),
+                  Chip(label: Text("3rd Year", style: TextStyle(color: Colors.white))),
+                  Chip(label: Text("Computer Science", style: TextStyle(color: Colors.white))),
                 ],
               ),
-            )
+              const SizedBox(height: 6),
+              const Text(
+                "Passionate programmer focused on full-stack development and competitive programming.",
+                style: TextStyle(color: Colors.white70),
+              )
+            ],
+          ),
+        )
+      ],
+    );
+  }
+
+Widget _buildPlatformRow() {
+  final List<Map<String, dynamic>> platforms = [
+    {'icon': Icons.code, 'url': 'https://leetcode.com/'},
+    {'icon': Icons.terminal, 'url': 'https://www.hackerrank.com/'},
+    {'icon': Icons.bolt, 'url': 'https://codeforces.com/'},
+    {'icon': Icons.school, 'url': 'https://www.geeksforgeeks.org/'},
+    {'icon': Icons.work, 'url': 'https://www.linkedin.com/'},
+    {'icon': Icons.web, 'url': 'https://github.com/'},
+  ];
+
+  return Wrap(
+    alignment: WrapAlignment.start,
+    spacing: 20,
+    runSpacing: 16,
+    children: platforms.map((platform) {
+      return GestureDetector(
+        onTap: () async {
+          final url = Uri.parse(platform['url']);
+          if (await canLaunchUrl(url)) {
+            await launchUrl(url, mode: LaunchMode.externalApplication);
+          }
+        },
+        child: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: const Color(0xFF1E293B),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(platform['icon'], color: Colors.greenAccent, size: 30),
+        ),
+      );
+    }).toList(),
+  );
+}
+
+
+  Widget _platformIcon(String assetPath, String url) {
+    return InkWell(
+      onTap: () => launchUrl(Uri.parse(url)),
+      child: CircleAvatar(
+        backgroundColor: Colors.transparent,
+        radius: 20,
+        backgroundImage: AssetImage(assetPath),
+      ),
+    );
+  }
+
+  Widget _buildStatsRow() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        double cardWidth = constraints.maxWidth > 500
+            ? 150
+            : (constraints.maxWidth - 48) / 2;
+
+        return Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: [
+            _statBox("12", "Projects📘", cardWidth),
+            _statBox("87", "Stars⭐", cardWidth),
+            _statBox("23", "Forks🔀", cardWidth),
+            _statBox("452", "Contribute🤝", cardWidth),
           ],
         );
       },
     );
   }
 
- Widget _buildStatsRow() {
-  return LayoutBuilder(
-    builder: (context, constraints) {
-      double cardWidth = constraints.maxWidth > 500
-          ? 150
-          : (constraints.maxWidth - 48) / 2; // spacing logic
-
-      return Wrap(
-        spacing: 12,
-        runSpacing: 12,
-        children: [
-          _statBox("12", "Projects📘", cardWidth),
-          _statBox("87", "Stars⭐", cardWidth),
-          _statBox("23", "Forks🔀", cardWidth),
-          _statBox("452", "Contribute🤝", cardWidth),
-        ],
-      );
-    },
-  );
-}
-
-
   Widget _statBox(String count, String label, double width) {
-  return Container(
-    width: width,
-    padding: const EdgeInsets.all(12),
-    decoration: BoxDecoration(
-      color: const Color(0xFF1E293B),
-      borderRadius: BorderRadius.circular(12),
-    ),
-    child: Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _glowText(count, fontSize: 22),
-        Text(label, style: const TextStyle(color: Color.fromARGB(207, 255, 255, 255))),
-      ],
-    ),
-  );
-}
-
+    return Container(
+      width: width,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E293B),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _glowText(count, fontSize: 22),
+          Text(label, style: const TextStyle(color: Color.fromARGB(207, 255, 255, 255))),
+        ],
+      ),
+    );
+  }
 
   Widget _buildSkills() {
     return _sectionCard(

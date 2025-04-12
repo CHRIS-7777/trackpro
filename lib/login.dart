@@ -80,7 +80,8 @@ class _LoginPageState extends State<LoginPage> {
                 const CircleAvatar(
                   radius: 30,
                   backgroundColor: Colors.white30,
-                  child: Icon(Icons.login, size: 30, color: Colors.white),
+                  child: Icon(Icons.person
+                  , size: 30, color: Colors.white),
                 ),
                 const SizedBox(height: 20),
                 _buildTextField(Icons.email, "Email ID", controller: emailController),
