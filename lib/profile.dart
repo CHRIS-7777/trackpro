@@ -7,9 +7,9 @@ class ProfilePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A),
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        iconTheme: IconThemeData(color: Colors.greenAccent),
+        backgroundColor: const Color.fromARGB(255, 12, 14, 37),
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
@@ -27,39 +27,49 @@ class ProfilePage extends StatelessWidget {
           ),
         ),
       ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          double maxContentWidth = constraints.maxWidth > 800 ? 800 : constraints.maxWidth;
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+               Color(0xFF001F3F), // Dark Blue
+              Colors.black,
+            ],
+          ),
+        ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            double maxContentWidth = constraints.maxWidth > 800 ? 800 : constraints.maxWidth;
 
-          return Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(maxWidth: maxContentWidth),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildHeader(),
-                    const SizedBox(height: 16),
-                    _glowText("Platforms", fontSize: 20),
-                    const SizedBox(height: 10),
-                    _buildPlatformRow(),
-                    const SizedBox(height: 20),
-                    _buildStatsRow(),
-                    const SizedBox(height: 20),
-                    _buildSkills(),
-                    const SizedBox(height: 20),
-                    _buildCurrentlyLearning(),
-                    const SizedBox(height: 20),
-                    _buildRecentActivity(),
-                    const SizedBox(height: 20),
-                    _buildAchievements(),
-                  ],
+            return Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: maxContentWidth),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildHeader(),
+                      const SizedBox(height: 16),
+                      _glowText("Platforms", fontSize: 20),
+                      const SizedBox(height: 10),
+                      _buildPlatformRow(),
+                      const SizedBox(height: 20),
+                      _buildStatsRow(),
+                      const SizedBox(height: 20),
+                      _buildCurrentlyLearning(),
+                      const SizedBox(height: 20),
+                      _buildRecentActivity(),
+                      const SizedBox(height: 20),
+                      _buildAchievements(),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
@@ -94,7 +104,7 @@ class ProfilePage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _glowText("Chris"),
+              _glowText("CHRIS", fontSize: 25),
               const Text("chris@example.com", style: TextStyle(color: Colors.grey)),
               const SizedBox(height: 6),
               Wrap(
@@ -117,48 +127,48 @@ class ProfilePage extends StatelessWidget {
     );
   }
 
-Widget _buildPlatformRow() {
-  final List<Map<String, dynamic>> platforms = [
-    {'icon': Icons.code, 'url': 'https://leetcode.com/'},
-    {'icon': Icons.terminal, 'url': 'https://www.hackerrank.com/'},
-    {'icon': Icons.bolt, 'url': 'https://codeforces.com/'},
-    {'icon': Icons.school, 'url': 'https://www.geeksforgeeks.org/'},
-    {'icon': Icons.work, 'url': 'https://www.linkedin.com/'},
-    {'icon': Icons.web, 'url': 'https://github.com/'},
-  ];
+  Widget _buildPlatformRow() {
+    final List<Map<String, String>> platforms = [
+      {'icon': 'assets/leetcode.png', 'url': 'https://leetcode.com/'},
+      {'icon': 'assets/hacker.png', 'url': 'https://www.hackerrank.com/'},
+      {'icon': 'assets/gfg.png', 'url': 'https://www.geeksforgeeks.org/'},
+      {'icon': 'assets/linkedin.png', 'url': 'https://www.linkedin.com/'},
+      {'icon': 'assets/github.png', 'url': 'https://github.com/'},
+    ];
 
-  return Wrap(
-    alignment: WrapAlignment.start,
-    spacing: 20,
-    runSpacing: 16,
-    children: platforms.map((platform) {
-      return GestureDetector(
-        onTap: () async {
-          final url = Uri.parse(platform['url']);
-          if (await canLaunchUrl(url)) {
-            await launchUrl(url, mode: LaunchMode.externalApplication);
-          }
-        },
-        child: Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: const Color(0xFF1E293B),
-            borderRadius: BorderRadius.circular(12),
+    return Wrap(
+      alignment: WrapAlignment.start,
+      spacing: 20,
+      runSpacing: 16,
+      children: platforms.map((platform) {
+        return GestureDetector(
+          onTap: () async {
+            final url = Uri.parse(platform['url']!);
+            if (await canLaunchUrl(url)) {
+              await launchUrl(url, mode: LaunchMode.externalApplication);
+            }
+          },
+          child: Container(
+            width: 40,
+            height: 40,
+            padding: const EdgeInsets.all(3),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1E293B),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Image.asset(platform['icon']!, fit: BoxFit.contain),
           ),
-          child: Icon(platform['icon'], color: Colors.greenAccent, size: 30),
-        ),
-      );
-    }).toList(),
-  );
-}
-
+        );
+      }).toList(),
+    );
+  }
 
   Widget _platformIcon(String assetPath, String url) {
     return InkWell(
       onTap: () => launchUrl(Uri.parse(url)),
       child: CircleAvatar(
         backgroundColor: Colors.transparent,
-        radius: 20,
+        radius: 15,
         backgroundImage: AssetImage(assetPath),
       ),
     );
@@ -172,7 +182,7 @@ Widget _buildPlatformRow() {
             : (constraints.maxWidth - 48) / 2;
 
         return Wrap(
-          spacing: 12,
+          spacing: 40,
           runSpacing: 12,
           children: [
             _statBox("12", "Projects📘", cardWidth),
@@ -198,24 +208,6 @@ Widget _buildPlatformRow() {
         children: [
           _glowText(count, fontSize: 22),
           Text(label, style: const TextStyle(color: Color.fromARGB(207, 255, 255, 255))),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSkills() {
-    return _sectionCard(
-      title: "Skills",
-      child: Wrap(
-        spacing: 10,
-        runSpacing: 10,
-        children: const [
-          Chip(label: Text("JavaScript")),
-          Chip(label: Text("React")),
-          Chip(label: Text("Python")),
-          Chip(label: Text("Java")),
-          Chip(label: Text("Data Structures")),
-          Chip(label: Text("Algorithms")),
         ],
       ),
     );

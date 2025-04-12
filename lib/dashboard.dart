@@ -40,7 +40,7 @@ class _DashboardPageState extends State<DashboardPage> {
               child: Text("Menu",
                   style: TextStyle(color: Colors.greenAccent, fontSize: 24)),
             ),
-             ListTile(
+            ListTile(
               leading: Icon(Icons.article),
               title: Text("Profile"),
               onTap: () => Navigator.pushNamed(context, '/profile'),
@@ -69,11 +69,11 @@ class _DashboardPageState extends State<DashboardPage> {
         ),
       ),
       appBar: AppBar(
-        title: const Text("DashBoard",style:TextStyle(fontSize: 20)),
+        title: const Text("DASHBOARD",style:TextStyle(fontSize: 20,fontWeight: FontWeight.bold)),
         backgroundColor: Colors.black,
         actions: [
           IconButton(
-            icon: const Icon(Icons.account_circle),
+            icon: const Icon(Icons.account_circle,size:30),
             onPressed: () {
               Navigator.pushNamed(context, '/profile');
             },
@@ -84,7 +84,8 @@ class _DashboardPageState extends State<DashboardPage> {
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [Colors.black, Color(0xFF0D1B2A)],
+            colors: [  Color(0xFF001F3F), // Dark Blue
+              Colors.black,],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -139,17 +140,17 @@ class DashboardContent extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 const Center(
-                   child: Text(
-    "TrackPro",
-    style: TextStyle(
-      fontSize: 30,
-      fontWeight: FontWeight.bold,
-      color: Colors.greenAccent,
-      shadows: [
-        Shadow(color: Colors.greenAccent, blurRadius: 15),
-      ],
-    ),
-  ),
+                  child: Text(
+                    "TrackPro",
+                    style: TextStyle(
+                      fontSize: 30,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.greenAccent,
+                      shadows: [
+                        Shadow(color: Colors.greenAccent, blurRadius: 15),
+                      ],
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 24),
                 const Center(
@@ -244,7 +245,32 @@ class DashboardContent extends StatelessWidget {
                   ],
                 ),
               ),
-            )
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              "Explore More",
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 12),
+            GridView.count(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              crossAxisCount: 2,
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
+              children: [
+                _buildFeatureCard("Blogs", "Read latest tech blogs", Icons.article, () => _launchURL("https://medium.com")),
+                _buildFeatureCard("Tutorials", "Learn step-by-step", Icons.school, () => _launchURL("https://youtube.com")),
+                _buildFeatureCard("Certifications", "Boost your profile", Icons.card_membership, () => _launchURL("https://coursera.org")),
+                _buildFeatureCard("Events", "Join tech events", Icons.event, () => _launchURL("https://eventbrite.com")),
+                _buildFeatureCard("Tools", "Explore dev tools", Icons.build, () => _launchURL("https://dev.to/tools")),
+                _buildFeatureCard("Explore", "Explore the Ideas", Icons.explore, () => _launchURL("https://webflow.com/blog/website-ideas")),
+              ],
+            ),
           ],
         ),
       ),
@@ -269,7 +295,7 @@ class DashboardContent extends StatelessWidget {
                     child: Text(
                       title,
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: Colors.greenAccent,
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
                       ),
@@ -318,7 +344,7 @@ class DashboardContent extends StatelessWidget {
             children: [
               Text(title,
                   style: const TextStyle(
-                      color: Colors.white,
+                      color: Colors.greenAccent,
                       fontSize: 15,
                       fontWeight: FontWeight.bold)),
               const SizedBox(height: 2),
@@ -335,7 +361,41 @@ class DashboardContent extends StatelessWidget {
       ),
     );
   }
-   Widget _glowText(String text, {double fontSize = 18, FontWeight weight = FontWeight.bold}) {
+
+  static Widget _buildFeatureCard(String title, String desc, IconData icon, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Card(
+        color: Color(0xFF0F172A),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(icon, color: Colors.greenAccent, size: 30),
+              const SizedBox(height: 12),
+              Text(title,
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold)),
+              const SizedBox(height: 4),
+              Expanded(
+                child: Text(
+                  desc,
+                  style: const TextStyle(color: Colors.white70, fontSize: 13),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _glowText(String text, {double fontSize = 18, FontWeight weight = FontWeight.bold}) {
     return Text(
       text,
       style: TextStyle(
