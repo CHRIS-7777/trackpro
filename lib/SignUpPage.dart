@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:trackpro/homepage.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -22,7 +23,10 @@ class _SignUpPageState extends State<SignUpPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Account Created Successfully")),
       );
-      Navigator.pop(context);
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const HomePage()),
+      );
     } on FirebaseAuthException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(e.message ?? "Signup Failed")),
@@ -53,7 +57,7 @@ class _SignUpPageState extends State<SignUpPage> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                  Container(
+                Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                   decoration: BoxDecoration(
@@ -71,36 +75,45 @@ class _SignUpPageState extends State<SignUpPage> {
                     ),
                   ),
                 ),
-                SizedBox(height:20),
+                const SizedBox(height: 20),
                 const CircleAvatar(
                   radius: 30,
                   backgroundColor: Colors.white30,
                   child: Icon(Icons.person_add, size: 30, color: Colors.white),
                 ),
                 const SizedBox(height: 20),
-                _buildTextField(Icons.person, "Full Name", controller: nameController),
+                _buildTextField(Icons.person, "Full Name",
+                    controller: nameController),
                 const SizedBox(height: 10),
-                _buildTextField(Icons.email, "Email ID", controller: emailController),
+                _buildTextField(Icons.email, "Email ID",
+                    controller: emailController),
                 const SizedBox(height: 10),
-                _buildTextField(Icons.lock, "Password", isPassword: true, controller: passwordController),
+                _buildTextField(Icons.lock, "Password",
+                    isPassword: true, controller: passwordController),
                 const SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: registerUser,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Color.fromARGB(255, 0, 183, 140),
-                    padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 15),
+                    backgroundColor: const Color.fromARGB(255, 0, 183, 140),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 60, vertical: 15),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  child: const Text("SIGN UP", style: TextStyle(fontSize: 16,color: Colors.white, fontWeight: FontWeight.bold)),
+                  child: const Text("SIGN UP",
+                      style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold)),
                 ),
                 const SizedBox(height: 10),
                 TextButton(
                   onPressed: () {
-                    Navigator.pop(context);
+                    Navigator.pushNamed(context,'/login');
                   },
-                  child: const Text("Already have an acc? Login", style: TextStyle(color: Colors.white70)),
+                  child: const Text("Already have an acc? Login",
+                      style: TextStyle(color: Colors.white70)),
                 ),
               ],
             ),

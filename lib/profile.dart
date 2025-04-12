@@ -99,9 +99,9 @@ class ProfilePage extends StatelessWidget {
                   Wrap(
                     spacing: 1,
                     children: const [
-                      Chip(label: Text("Student")),
+                      Chip(label: Text("Student",style: TextStyle(color: Colors.white))),
                       Chip(label: Text("3rd Year", style: TextStyle(color: Colors.white))),
-                      Chip(label: Text("Computer Science")),
+                      Chip(label: Text("Computer Science",style: TextStyle(color: Colors.white))),
                     ],
                   ),
                   const SizedBox(height: 6),

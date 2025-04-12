@@ -139,14 +139,17 @@ class DashboardContent extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 const Center(
-                  child: Text(
-                    "TRACKPRO",
-                    style: TextStyle(
-                      fontSize: 30,
-                      color: Colors.greenAccent,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                   child: Text(
+    "TrackPro",
+    style: TextStyle(
+      fontSize: 30,
+      fontWeight: FontWeight.bold,
+      color: Colors.greenAccent,
+      shadows: [
+        Shadow(color: Colors.greenAccent, blurRadius: 15),
+      ],
+    ),
+  ),
                 ),
                 const SizedBox(height: 24),
                 const Center(
@@ -329,6 +332,17 @@ class DashboardContent extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+   Widget _glowText(String text, {double fontSize = 18, FontWeight weight = FontWeight.bold}) {
+    return Text(
+      text,
+      style: TextStyle(
+        fontSize: fontSize,
+        fontWeight: weight,
+        color: Colors.greenAccent,
+        shadows: [Shadow(color: Colors.greenAccent, blurRadius: 20)],
       ),
     );
   }
