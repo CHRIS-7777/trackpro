@@ -18,7 +18,6 @@ void main() async {
       projectId: 'trackpro-fcc7d',
     ),
   );
-
   runApp(MyApp());
 }
 
