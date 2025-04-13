@@ -62,25 +62,53 @@ Future<void> _generateProjects() async {
 }
 
 
-  Future<void> _bookmarkProject(Map<String, String> project) async {
+ Future<void> _bookmarkProject(Map<String, String> project) async {
+  try {
+    // Check if user is authenticated
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
-
-    await FirebaseFirestore.instance
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please log in to bookmark projects")),
+      );
+      return;
+    }
+    
+    print("Attempting to save project: ${project['title']}");
+    print("User ID: ${user.uid}");
+    
+    // Reference to where we want to save the project
+    final docRef = FirebaseFirestore.instance
         .collection('users')
         .doc(user.uid)
         .collection('saved_projects')
-        .add({
+        .doc(); // Creates a new document with auto-generated ID
+        
+    // Data to save
+    final projectData = {
       'title': project['title'],
       'description': project['description'],
       'createdAt': Timestamp.now(),
-    });
-
+    };
+    
+    print("Saving project with data: $projectData");
+    
+    // Save the data
+    await docRef.set(projectData);
+    
+    print("Project successfully saved!");
+    
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text("Project saved!")),
     );
+  } catch (e, stack) {
+    print("Error saving project: $e");
+    print("Stack trace: $stack");
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Failed to save project: $e")),
+    );
   }
-
+}
   @override
   Widget build(BuildContext context) {
     return Scaffold(
