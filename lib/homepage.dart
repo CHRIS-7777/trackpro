@@ -157,7 +157,7 @@ class HomePage extends StatelessWidget {
                     Icon(Icons.supervised_user_circle, color: Colors.white70),
                     
                     Text("10k+ Users", style: TextStyle(color: Colors.white70)),
-                    SizedBox(width: 20),
+                    SizedBox(width: 5),
                     Icon(Icons.people_alt, color: Colors.white70),
                   SizedBox(width:3),
                     Text("5k+ Connections", style: TextStyle(color: Colors.white70)),

@@ -6,6 +6,8 @@ import 'package:trackpro/homepage.dart';
 import 'package:trackpro/login.dart';
 import 'package:trackpro/profile.dart';
  // generated automatically
+ import 'package:trackpro/projectpage.dart';
+  import 'package:trackpro/explorepage.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,11 +32,11 @@ class MyApp extends StatelessWidget {
       title: 'TrackPro',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        fontFamily: 'Roboto',
+        
         brightness: Brightness.dark,
         useMaterial3: true,
       ),
-      initialRoute: '/login',
+      initialRoute: '/explore',
         routes: {
   '/dash': (context) => DashboardPage(),
   '/login': (context) => LoginPage(),
@@ -43,8 +45,8 @@ class MyApp extends StatelessWidget {
      '/profile': (context) => ProfilePage(),
   // '/resumes': (context) => ResumesPage(),         // define this screen
   // '/create-resume': (context) => CreateResumePage(),
-  // '/projects': (context) => ProjectsPage(),
-  // '/explore': (context) => ExplorePage(),
+  '/projects': (context) => ProjectsPage(),
+  '/explore': (context) => ExplorePage(),
   // '/settings': (context) => SettingsPage(),
 },
 
