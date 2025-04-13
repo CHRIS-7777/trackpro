@@ -102,16 +102,16 @@ class _DashboardPageState extends State<DashboardPage> {
             setState(() {
               _currentIndex = index;
             });
-            final routes = ['/projects', '/suggest', '/add', '/explore', '/resume'];
+            final routes = ['/projects', '/explore', '/add', '/explore', '/resume'];
             if (index < routes.length) {
               Navigator.pushNamed(context, routes[index]);
             }
           },
           items: const [
             BottomNavigationBarItem(icon: Icon(Icons.folder), label: 'Projects'),
-            BottomNavigationBarItem(icon: Icon(Icons.recommend), label: 'Suggest'),
-            BottomNavigationBarItem(icon: Icon(Icons.add), label: 'Add'),
             BottomNavigationBarItem(icon: Icon(Icons.explore), label: 'Explore'),
+            BottomNavigationBarItem(icon: Icon(Icons.add), label: 'Add'),
+            BottomNavigationBarItem(icon: Icon(Icons.recommend), label: 'Suggest'),
             BottomNavigationBarItem(icon: Icon(Icons.document_scanner), label: 'Resume'),
           ],
         ),

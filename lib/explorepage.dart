@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_generative_ai/google_generative_ai.dart';
+import 'package:flutter_gemini/flutter_gemini.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -15,50 +15,52 @@ class _ExplorePageState extends State<ExplorePage> {
   final List<Map<String, String>> _generatedProjects = [];
   bool _loading = false;
 
-  // ⬇️ Replace this with your Gemini API key
-  final String apiKey = 'YOUR_GEMINI_API_KEY';
+  // Method to generate projects based on the user prompt
+Future<void> _generateProjects() async {
+  final prompt = _promptController.text.trim();
+  if (prompt.isEmpty) return;
 
-  Future<void> _generateProjects() async {
-    final prompt = _promptController.text.trim();
-    if (prompt.isEmpty) return;
+  setState(() {
+    _loading = true;
+    _generatedProjects.clear();
+  });
 
-    setState(() {
-      _loading = true;
-      _generatedProjects.clear();
-    });
-
-    final model = GenerativeModel(
-      model: 'gemini-pro',
-      apiKey: apiKey,
+  try {
+    final result = await Gemini.instance.text(
+      "Suggest 5 project popular projects related to the topic: $prompt",
     );
 
-    final content = [Content.text("Give me 5 flutter app project ideas about: $prompt")];
+    print("Gemini Response: $result");
 
-    try {
-      final response = await model.generateContent(content);
-      final text = response.text ?? "";
-
-      // Example Gemini response parser (basic bullet list)
-      final ideas = text.split(RegExp(r'\d+\.\s+')).where((e) => e.trim().isNotEmpty).toList();
-
-      setState(() {
-        _generatedProjects.addAll(
-          ideas.map((idea) {
-            return {
-              'title': idea.split(":").first.trim(),
-              'description': idea.contains(":") ? idea.split(":").last.trim() : idea.trim(),
-            };
-          }),
-        );
-      });
-    } catch (e) {
-      print('Error: $e');
-    }
+   final content = result?.output ?? '';  // safer than assuming .text
+    final lines = content
+        .split('\n')
+        .where((line) => line.trim().isNotEmpty)
+        .toList();
 
     setState(() {
-      _loading = false;
+      _generatedProjects.addAll(lines.map((line) {
+        final parts = line.contains(':') ? line.split(':') : [line, ""];
+        return {
+          'title': parts[0].trim(),
+          'description': parts.length > 1
+              ? parts.sublist(1).join(':').trim()
+              : 'No description provided',
+        };
+      }).toList());
     });
+  } catch (e, stack) {
+    print("Error: $e\nStack: $stack");
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Failed to generate ideas: $e')),
+    );
   }
+
+  setState(() {
+    _loading = false;
+  });
+}
+
 
   Future<void> _bookmarkProject(Map<String, String> project) async {
     final user = FirebaseAuth.instance.currentUser;
@@ -84,66 +86,68 @@ class _ExplorePageState extends State<ExplorePage> {
     return Scaffold(
       backgroundColor: const Color(0xFF0F172A),
       appBar: AppBar(
-        title: const Text("Explore Projects"),
+        title: const Text(
+          "Explore Projects",
+          style: TextStyle(color: Colors.white),
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            // Prompt Input
             TextField(
               controller: _promptController,
               style: const TextStyle(color: Colors.white),
               decoration: InputDecoration(
-                hintText: "Search project ideas (e.g. AI, Health app)",
+                hintText: "Search ideas…",
                 hintStyle: const TextStyle(color: Colors.white54),
                 filled: true,
                 fillColor: const Color(0xFF1E293B),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0)),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 suffixIcon: IconButton(
                   icon: const Icon(Icons.search, color: Colors.greenAccent),
                   onPressed: _generateProjects,
                 ),
               ),
             ),
-            const SizedBox(height: 16),
-
+            const SizedBox(height: 20),
             if (_loading)
-              const Center(child: CircularProgressIndicator(color: Colors.greenAccent)),
-
-            // Project Cards
-            Expanded(
-              child: _generatedProjects.isEmpty && !_loading
-                  ? const Center(
-                      child: Text(
-                        "Search for project ideas using the prompt above!",
-                        style: TextStyle(color: Colors.white60),
+              const Center(child: CircularProgressIndicator(color: Colors.greenAccent))
+            else if (_generatedProjects.isEmpty)
+              const Center(
+                child: Text("No projects yet. Start by entering a prompt!",
+                    style: TextStyle(color: Colors.white70)),
+              )
+            else
+              Expanded(
+                child: ListView.builder(
+                  itemCount: _generatedProjects.length,
+                  itemBuilder: (context, index) {
+                    final project = _generatedProjects[index];
+                    return Card(
+                      color: const Color(0xFF1E293B),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      margin: const EdgeInsets.symmetric(vertical: 8),
+                      child: ListTile(
+                        title: Text(project['title'] ?? '',
+                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                        subtitle: Text(project['description'] ?? '',
+                            style: const TextStyle(color: Colors.white70)),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.bookmark_border, color: Colors.greenAccent),
+                          onPressed: () => _bookmarkProject(project),
+                        ),
                       ),
-                    )
-                  : ListView.builder(
-                      itemCount: _generatedProjects.length,
-                      itemBuilder: (context, index) {
-                        final project = _generatedProjects[index];
-                        return Card(
-                          color: const Color(0xFF1E293B),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          margin: const EdgeInsets.symmetric(vertical: 8),
-                          child: ListTile(
-                            title: Text(project['title'] ?? '',
-                                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                            subtitle: Text(project['description'] ?? '',
-                                style: const TextStyle(color: Colors.white70)),
-                            trailing: IconButton(
-                              icon: const Icon(Icons.star_border, color: Colors.greenAccent),
-                              onPressed: () => _bookmarkProject(project),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-            )
+                    );
+                  },
+                ),
+              ),
           ],
         ),
       ),

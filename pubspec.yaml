@@ -43,6 +43,7 @@ dependencies:
   cloud_firestore: ^5.6.6
   google_generative_ai: ^0.4.6
   provider: ^6.1.4
+  flutter_gemini: ^3.0.0
 
 dev_dependencies:
   flutter_test:

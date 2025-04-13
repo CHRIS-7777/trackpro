@@ -9,6 +9,10 @@ class ProjectsPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFF0F172A),
       appBar: AppBar(
+          leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pushNamed(context, '/dash'),
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
         title: const Text(

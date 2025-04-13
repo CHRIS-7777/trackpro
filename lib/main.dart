@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_gemini/flutter_gemini.dart';
 import 'package:trackpro/SignUpPage.dart';
 import 'package:trackpro/dashboard.dart';
 import 'package:trackpro/homepage.dart';
@@ -11,7 +12,7 @@ import 'package:trackpro/profile.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
+    Gemini.init(apiKey: 'AIzaSyDYQqol4UPKrBujeKUfWxMMNoscZzfGqiM'); // Replace with your Gemini API key
   await Firebase.initializeApp(
     options: FirebaseOptions(
       apiKey: 'AIzaSyA5lnFpUEnqfV8U-QBohgUIamptQS_7goA',
