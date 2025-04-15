@@ -33,13 +33,18 @@ class _ProjectsPageState extends State<ProjectsPage> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back, color: Colors.greenAccent),
           onPressed: () => Navigator.pushNamed(context, '/dash'),
         ),
-        title: const Text(
-          "Projects",
-          style: TextStyle(color: Colors.white),
+       title: Text(
+          'Projects',
+          style: TextStyle(
+            color: Colors.greenAccent,
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+          ),
         ),
+        centerTitle: true,
       ),
       extendBodyBehindAppBar: true,
       body: Container(
@@ -250,37 +255,77 @@ class _ProjectsPageState extends State<ProjectsPage> {
         false;
   }
 
-  Widget _buildProjectCard({
-    required String? title,
-    required String? description,
-    required VoidCallback onDelete,
-  }) {
-    return Card(
-      color: const Color(0xFF1E293B),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      elevation: 8,
-      shadowColor: Colors.greenAccent.withOpacity(0.3),
-      margin: const EdgeInsets.only(bottom: 16),
-      child: ListTile(
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        title: Text(
+ Widget _buildProjectCard({
+  required String? title,
+  required String? description,
+  required VoidCallback onDelete,
+}) {
+  return Container(
+    margin: const EdgeInsets.only(bottom: 16),
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: const Color(0xFF0F172A),
+      borderRadius: BorderRadius.circular(20),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.3),
+          blurRadius: 10,
+          offset: const Offset(0, 4),
+        ),
+      ],
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
           title ?? 'Untitled Project',
           style: const TextStyle(
-            color: Colors.white,
+            fontSize: 18,
             fontWeight: FontWeight.bold,
-            fontSize: 16,
+            color: Color(0xFF22C55E), // Green accent
           ),
         ),
-        subtitle: Text(
-          description ?? 'No description available',
-          style: const TextStyle(color: Colors.white70),
+        const SizedBox(height: 8),
+        Text(
+          description ?? 'No description provided',
+          style: const TextStyle(
+            fontSize: 14,
+            color: Colors.white70,
+          ),
         ),
-        trailing: IconButton(
-          icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-          onPressed: onDelete,
+        const SizedBox(height: 12),
+        
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 8,
+          children: const [
+            Chip(
+              label: Text("AI"),
+              labelStyle: TextStyle(color: Colors.greenAccent),
+              backgroundColor: Color.fromARGB(90, 105, 240, 175),
+            ),
+            Chip(
+              label: Text("Flutter"),
+           labelStyle: TextStyle(color: Colors.greenAccent),
+              backgroundColor: Color.fromARGB(90, 105, 240, 175),
+            ),
+            Chip(
+              label: Text("Dialogflow"),
+              labelStyle: TextStyle(color: Colors.greenAccent),
+              backgroundColor: Color.fromARGB(90, 105, 240, 175),
+            ),
+          ],
         ),
-      ),
-    );
-  }
+        Align(
+          alignment: Alignment.topRight,
+          child: IconButton(
+            icon: const Icon(Icons.delete, color: Colors.redAccent),
+            onPressed: onDelete,
+          ),
+        )
+      ],
+    ),
+  );
+}
+
 }

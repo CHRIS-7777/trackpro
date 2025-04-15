@@ -9,6 +9,7 @@ import 'package:trackpro/profile.dart';
  // generated automatically
  import 'package:trackpro/projectpage.dart';
   import 'package:trackpro/explorepage.dart';
+import 'package:trackpro/recommend.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -48,6 +49,7 @@ class MyApp extends StatelessWidget {
   // '/create-resume': (context) => CreateResumePage(),
   '/projects': (context) => ProjectsPage(),
   '/explore': (context) => ExplorePage(),
+  '/suggest': (context) => RecommendPage(),
   // '/settings': (context) => SettingsPage(),
 },
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gemini/flutter_gemini.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:ui';
 
 class ExplorePage extends StatefulWidget {
   const ExplorePage({super.key});
@@ -105,13 +106,18 @@ class _ExplorePageState extends State<ExplorePage> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back, color: Colors.greenAccent),
           onPressed: () => Navigator.pushNamed(context, '/dash'),
         ),
-        title: const Text(
-          "Explore",
-          style: TextStyle(color: Colors.white),
+         title: Text(
+          'Explore',
+          style: TextStyle(
+            color: Colors.greenAccent,
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+          ),
         ),
+        centerTitle: true,
       ),
       extendBodyBehindAppBar: true,
       body: Container(
@@ -157,102 +163,132 @@ class _ExplorePageState extends State<ExplorePage> {
                 if (_loading)
                   const CircularProgressIndicator(color: Colors.greenAccent)
                 else
-                  Expanded(
-                    child: _generatedProjects.isEmpty
-                        ? const Text(
-                            "No projects generated yet.",
-                            style: TextStyle(color: Colors.white),
-                          )
-                        : ListView.builder(
-                            itemCount: _generatedProjects.length,
-                            itemBuilder: (context, index) {
-                              final project = _generatedProjects[index];
-                              final description = project['description'] ?? '';
-                              final shortDescription = description.length > 100
-                                  ? '${description.substring(0, 100)}...'
-                                  : description;
+                 Expanded(
+  child: _generatedProjects.isEmpty
+      ? const Text(
+          "No projects generated yet.",
+          style: TextStyle(color: Color.fromARGB(93, 255, 255, 255)),
+        )
+      : ListView.builder(
+          itemCount: _generatedProjects.length,
+          itemBuilder: (context, index) {
+            final project = _generatedProjects[index];
+            final description = project['description'] ?? '';
+            final shortDescription = description.length > 100
+                ? '${description.substring(0, 100)}...'
+                : description;
 
-                              final domains = <String>[];
-                              final lowerDesc = description.toLowerCase();
-                              if (lowerDesc.contains('ai') || lowerDesc.contains('artificial intelligence')) {
-                                domains.add('AI');
-                              }
-                              if (lowerDesc.contains('ml') || lowerDesc.contains('machine learning')) {
-                                domains.add('ML');
-                              }
-                              if (lowerDesc.contains('flutter')) {
-                                domains.add('Flutter');
-                              }
-                              if (lowerDesc.contains('react')) {
-                                domains.add('React');
-                              }
-                              if (lowerDesc.contains('blockchain')) {
-                                domains.add('Blockchain');
-                              }
-                              if (lowerDesc.contains('iot')) {
-                                domains.add('IoT');
-                              }
-                              if (lowerDesc.contains('web') || lowerDesc.contains('frontend')) {
-                                domains.add('Web');
-                              }
+            final domains = <String>[];
+            final lowerDesc = description.toLowerCase();
+            if (lowerDesc.contains('ai') || lowerDesc.contains('artificial intelligence')) {
+              domains.add('AI');
+            }
+            if (lowerDesc.contains('ml') || lowerDesc.contains('machine learning')) {
+              domains.add('ML');
+            }
+            if (lowerDesc.contains('flutter')) {
+              domains.add('Flutter');
+            }
+            if (lowerDesc.contains('react')) {
+              domains.add('React');
+            }
+            if (lowerDesc.contains('blockchain')) {
+              domains.add('Blockchain');
+            }
+            if (lowerDesc.contains('iot')) {
+              domains.add('IoT');
+            }
+            if (lowerDesc.contains('web') || lowerDesc.contains('frontend')) {
+              domains.add('Web');
+            }
 
-                              return Card(
-                                color: const Color(0xFF1E293B),
+            return Container(
+              margin: const EdgeInsets.only(bottom: 20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [const Color.fromARGB(255, 0, 0, 0).withOpacity(0.2), Colors.black.withOpacity(0.3)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.greenAccent.withOpacity(0.4), width: 1),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.greenAccent.withOpacity(0.1),
+                    blurRadius: 10,
+                    spreadRadius: 2,
+                    offset: const Offset(2, 4),
+                  ),
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.05),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          project['title'] ?? '',
+                          style: const TextStyle(
+                            color: Color.fromARGB(255, 254, 254, 254),
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        if (domains.isNotEmpty)
+                          Wrap(
+                            spacing: 8,
+                            children: domains.map((domain) {
+                              return Chip(
+                                label: Text(domain),
+                                backgroundColor: Colors.greenAccent.withOpacity(0.15),
+                                labelStyle: const TextStyle(color: Colors.white),
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                elevation: 6,
-                                shadowColor: Colors.greenAccent.withOpacity(0.2),
-                                margin: const EdgeInsets.only(bottom: 16),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(16.0),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        project['title'] ?? '',
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      if (domains.isNotEmpty)
-                                        Wrap(
-                                          spacing: 8,
-                                          children: domains.map((domain) {
-                                            return Chip(
-                                              label: Text(domain),
-                                              backgroundColor: Colors.greenAccent.withOpacity(0.2),
-                                              labelStyle: const TextStyle(color: Colors.white),
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(8),
-                                                side: const BorderSide(color: Colors.greenAccent),
-                                              ),
-                                            );
-                                          }).toList(),
-                                        ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        shortDescription,
-                                        style: const TextStyle(color: Colors.white70),
-                                      ),
-                                      Align(
-                                        alignment: Alignment.bottomRight,
-                                        child: IconButton(
-                                          icon: const Icon(Icons.bookmark_border,
-                                              color: Colors.greenAccent),
-                                          onPressed: () => _bookmarkProject(project),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                                  borderRadius: BorderRadius.circular(10),
+                                  side: const BorderSide(color: Colors.greenAccent),
                                 ),
                               );
-                            },
+                            }).toList(),
                           ),
+                        const SizedBox(height: 10),
+                        Text(
+                          shortDescription,
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 14,
+                            height: 1.4,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Align(
+                          alignment: Alignment.bottomRight,
+                          child: InkWell(
+                            onTap: () => _bookmarkProject(project),
+                            borderRadius: BorderRadius.circular(30),
+                            child: const Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: Icon(Icons.bookmark_border, color: Colors.greenAccent),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
+                ),
+              ),
+            );
+          },
+        ),
+),
+
               ],
             ),
           ),
@@ -278,3 +314,4 @@ class _ExplorePageState extends State<ExplorePage> {
     );
   }
 }
+
