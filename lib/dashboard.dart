@@ -70,7 +70,7 @@ class _DashboardPageState extends State<DashboardPage> {
         ),
       ),
       appBar: AppBar(
-        title: const Text("DASHBOARD",style:TextStyle(fontSize: 20,fontWeight: FontWeight.bold)),
+        title: const Text("DASHBOARD",style:TextStyle(fontSize: 20,fontWeight: FontWeight.bold,color: Colors.greenAccent)),
         backgroundColor: Colors.black,
         actions: [
           IconButton(
