@@ -37,7 +37,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
           onPressed: () => Navigator.pushNamed(context, '/dash'),
         ),
        title: Text(
-          'Projects',
+          '🎯 Projects',
           style: TextStyle(
             color: Colors.greenAccent,
             fontSize: 22,

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_gemini/flutter_gemini.dart';
+import 'package:trackpro/CreateResume.dart';
 import 'package:trackpro/SignUpPage.dart';
+import 'package:trackpro/createproject.dart';
 import 'package:trackpro/dashboard.dart';
 import 'package:trackpro/homepage.dart';
 import 'package:trackpro/login.dart';
@@ -45,11 +47,11 @@ class MyApp extends StatelessWidget {
   '/signup': (context) => SignUpPage(),
     '/home': (context) => HomePage(),
      '/profile': (context) => ProfilePage(),
-  // '/resumes': (context) => ResumesPage(),         // define this screen
-  // '/create-resume': (context) => CreateResumePage(),
+'/resume': (context) => const ResumeGeneratorPage(),
   '/projects': (context) => ProjectsPage(),
   '/explore': (context) => ExplorePage(),
   '/suggest': (context) => RecommendPage(),
+   '/add': (context) => CreateProjectPage(),
   // '/settings': (context) => SettingsPage(),
 },
 

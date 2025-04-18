@@ -110,7 +110,7 @@ class _ExplorePageState extends State<ExplorePage> {
           onPressed: () => Navigator.pushNamed(context, '/dash'),
         ),
          title: Text(
-          'Explore',
+          ' 🕵🏻 Explore',
           style: TextStyle(
             color: Colors.greenAccent,
             fontSize: 22,
@@ -118,6 +118,7 @@ class _ExplorePageState extends State<ExplorePage> {
           ),
         ),
         centerTitle: true,
+
       ),
       extendBodyBehindAppBar: true,
       body: Container(

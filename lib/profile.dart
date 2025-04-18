@@ -59,9 +59,11 @@ class ProfilePage extends StatelessWidget {
                       const SizedBox(height: 20),
                       _buildStatsRow(),
                       const SizedBox(height: 20),
-                      _buildCurrentlyLearning(),
+                      _buildskill(),
                       const SizedBox(height: 20),
                       _buildRecentActivity(),
+                      const SizedBox(height: 20),
+                     _buildCurrentlyLearning(),
                       const SizedBox(height: 20),
                       _buildAchievements(),
                     ],
@@ -223,6 +225,26 @@ class ProfilePage extends StatelessWidget {
           _learningProgress("System Design", "Designing Data-Intensive Applications", 0.75),
           const SizedBox(height: 16),
           _learningProgress("Machine Learning", "Stanford CS229", 0.40),
+        ],
+      ),
+    );
+  }
+    Widget _buildskill() {
+    return _sectionCard(
+      title: "Skills",
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _learningProgress("C-Programming", "Intermediate level of Concept", 0.65),
+          const SizedBox(height: 16),
+          _learningProgress("C++-Programming", "Advance level of Concept", 0.70),
+           const SizedBox(height: 16),
+          _learningProgress("Java Programming", "Medium level of Concept", 0.50),
+           const SizedBox(height: 16),
+          _learningProgress("Flutter /Dart", "Advance level with the Backend", 0.80),
+           const SizedBox(height: 16),
+          _learningProgress("Linux", "Cyber Tools and Pentesting", 0.70),
+        
         ],
       ),
     );

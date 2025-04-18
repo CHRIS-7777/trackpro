@@ -122,7 +122,7 @@ class _RecommendPageState extends State<RecommendPage> {
         ),
         backgroundColor: Colors.black,
         title: Text(
-          'Community',
+          '🌍 Community',
           style: TextStyle(
             color: Colors.greenAccent,
             fontSize: 22,
@@ -151,11 +151,11 @@ class _RecommendPageState extends State<RecommendPage> {
                       hintText: 'Search Projects...',
                       hintStyle: TextStyle(color: Colors.white54),
                       filled: true,
-                      fillColor: Colors.grey[850],
+                      fillColor: const Color.fromARGB(255, 0, 0, 0),
                       prefixIcon: Icon(Icons.search, color: Colors.white),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
+                        borderRadius: BorderRadius.circular(16),
+                       borderSide: const BorderSide(color: Color.fromARGB(255, 255, 255, 255), width: 5),
                       ),
                     ),
                     onChanged: filterProjects,

@@ -45,6 +45,9 @@ dependencies:
   provider: ^6.1.4
   flutter_gemini: ^3.0.0
   shared_preferences: ^2.5.3
+  pdf: ^3.11.3
+  printing: ^5.14.2
+  path_provider: ^2.1.5
 
 dev_dependencies:
   flutter_test:
