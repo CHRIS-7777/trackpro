@@ -30,7 +30,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
     return Scaffold(
       backgroundColor: Colors.transparent,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: const Color.fromARGB(255, 0, 0, 0),
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.greenAccent),
@@ -49,15 +49,12 @@ class _ProjectsPageState extends State<ProjectsPage> {
       extendBodyBehindAppBar: true,
       body: Container(
         decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Colors.black,
-              Color(0xFF001F3F), // Dark Blue
-            ],
-          ),
+        gradient: LinearGradient(
+          colors: [Colors.black, Color(0xFF0D1B2A)],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
         ),
+      ),
         child: SafeArea(
           child: Column(
             children: [

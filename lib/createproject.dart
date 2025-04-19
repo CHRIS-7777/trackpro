@@ -79,16 +79,13 @@ class _CreateProjectPageState extends State<CreateProjectPage> {
         ),
       ),
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Colors.black,
-              Color(0xFF001F3F), // Dark Blue
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+         decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.black, Color(0xFF0D1B2A)],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
         ),
+      ),
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
@@ -120,7 +117,7 @@ class _CreateProjectPageState extends State<CreateProjectPage> {
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
-        backgroundColor: const Color.fromARGB(255, 10, 15, 25),
+        backgroundColor: const Color.fromARGB(255, 0, 0, 0),
         elevation: 0,
         selectedItemColor: Colors.greenAccent,
         unselectedItemColor: Colors.white70,
@@ -147,9 +144,9 @@ class _CreateProjectPageState extends State<CreateProjectPage> {
       style: const TextStyle(color: Colors.white),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: const TextStyle(color: Color.fromARGB(255, 149, 154, 152)),
+        labelStyle: const TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
         filled: true,
-        fillColor: const Color.fromARGB(255, 0, 0, 0),
+        fillColor: const Color.fromARGB(0, 0, 0, 0),
         enabledBorder: OutlineInputBorder(
           borderSide: const BorderSide(color: Color.fromARGB(255, 249, 249, 249),width:1),
           borderRadius: BorderRadius.circular(12),

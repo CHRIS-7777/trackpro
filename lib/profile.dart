@@ -9,7 +9,7 @@ class ProfilePage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         iconTheme: IconThemeData(color: Colors.greenAccent),
-        backgroundColor: const Color.fromARGB(255, 12, 14, 37),
+        backgroundColor: const Color.fromARGB(255, 0, 0, 0),
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
@@ -21,24 +21,18 @@ class ProfilePage extends StatelessWidget {
             fontSize: 24,
             fontWeight: FontWeight.bold,
             color: Colors.greenAccent,
-            shadows: [
-              Shadow(color: Colors.greenAccent, blurRadius: 15),
-            ],
+            
           ),
         ),
       ),
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-               // Dark Blue
-              Colors.black,
-               Color(0xFF001F3F),
-            ],
-          ),
+         decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.black, Color(0xFF0D1B2A)],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
         ),
+      ),
         child: LayoutBuilder(
           builder: (context, constraints) {
             double maxContentWidth = constraints.maxWidth > 800 ? 800 : constraints.maxWidth;

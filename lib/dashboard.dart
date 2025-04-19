@@ -83,16 +83,10 @@ class _DashboardPageState extends State<DashboardPage> {
       ),
       body: _pages[_currentIndex == -1 ? 0 : _currentIndex],
       bottomNavigationBar: Container(
-  decoration: const BoxDecoration(
-    gradient: LinearGradient(
-      colors: [Color(0xFF001F3F), Colors.black],
-      begin: Alignment.topCenter,
-      end: Alignment.bottomCenter,
-    ),
-  ),
+ 
   child: BottomNavigationBar(
     currentIndex: _currentIndex == -1 ? 0 : _currentIndex,
-    backgroundColor: Colors.transparent,
+    backgroundColor: const Color.fromARGB(255, 0, 0, 0),
     elevation: 0,
     selectedItemColor: Colors.white,
     unselectedItemColor: Colors.white,

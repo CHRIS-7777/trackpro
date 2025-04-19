@@ -8,9 +8,8 @@ import 'package:trackpro/dashboard.dart';
 import 'package:trackpro/homepage.dart';
 import 'package:trackpro/login.dart';
 import 'package:trackpro/profile.dart';
- // generated automatically
- import 'package:trackpro/projectpage.dart';
-  import 'package:trackpro/explorepage.dart';
+import 'package:trackpro/projectpage.dart';
+import 'package:trackpro/explorepage.dart';
 import 'package:trackpro/recommend.dart';
 
 void main() async {
@@ -40,7 +39,7 @@ class MyApp extends StatelessWidget {
         brightness: Brightness.dark,
         useMaterial3: true,
       ),
-      initialRoute: '/login',
+      initialRoute: '/dash',
         routes: {
   '/dash': (context) => DashboardPage(),
   '/login': (context) => LoginPage(),
