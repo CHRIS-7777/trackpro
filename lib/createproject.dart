@@ -79,6 +79,7 @@ class _CreateProjectPageState extends State<CreateProjectPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -105,9 +106,8 @@ class _CreateProjectPageState extends State<CreateProjectPage> {
               icon: const Icon(Icons.arrow_back, color: Colors.greenAccent),
               onPressed: () => Navigator.pushNamed(context, '/dash'),
             ),
-         
           ),
-          body: Padding(
+          body: SingleChildScrollView(
             padding: const EdgeInsets.all(24.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -128,15 +128,13 @@ class _CreateProjectPageState extends State<CreateProjectPage> {
                   icon: Icons.title,
                 ),
                 const SizedBox(height: 24),
-                Expanded(
-                  child: _buildDescriptionField(
-                    controller: descriptionController,
-                    label: "Project Description",
-                    hint: "Describe your project in detail...",
-                    icon: Icons.description,
-                  ),
+                _buildDescriptionField(
+                  controller: descriptionController,
+                  label: "Project Description",
+                  hint: "Describe your project in detail...",
+                  icon: Icons.description,
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 150),
                 Center(
                   child: ElevatedButton(
                     onPressed: _saveProject,
@@ -238,7 +236,7 @@ class _CreateProjectPageState extends State<CreateProjectPage> {
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Colors.greenAccent, width: 1),
+                borderSide: const BorderSide(color: Colors.greenAccent, width: 2),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -273,48 +271,46 @@ class _CreateProjectPageState extends State<CreateProjectPage> {
           ),
         ),
         const SizedBox(height: 8),
-        Expanded(
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.greenAccent.withOpacity(0.1),
-                  blurRadius: 10,
-                  spreadRadius: 2,
-                ),
-              ],
-            ),
-            child: TextField(
-              controller: controller,
-              maxLines: null, // Allows for unlimited lines
-              expands: true, // Expands to fill available space
-              keyboardType: TextInputType.multiline,
-              textAlignVertical: TextAlignVertical.top,
-              style: const TextStyle(color: Colors.white),
-              decoration: InputDecoration(
-                hintText: hint,
-                hintStyle: const TextStyle(color: Colors.white54),
-                alignLabelWithHint: true,
-                prefixIcon: Icon(icon, color: Colors.white),
-                filled: true,
-                fillColor: Colors.black.withOpacity(0.4),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Colors.greenAccent, width: 1),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Colors.greenAccent, width: 2),
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 16,
-                ),
+        Container(
+          height: 200, // Fixed height avoids UI jump on keyboard open
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.greenAccent.withOpacity(0.1),
+                blurRadius: 10,
+                spreadRadius: 2,
+              ),
+            ],
+          ),
+          child: TextField(
+            controller: controller,
+            maxLines: null,
+            keyboardType: TextInputType.multiline,
+            textAlignVertical: TextAlignVertical.top,
+            style: const TextStyle(color: Colors.white),
+            decoration: InputDecoration(
+              hintText: hint,
+              hintStyle: const TextStyle(color: Colors.white54),
+              alignLabelWithHint: true,
+              prefixIcon: Icon(icon, color: Colors.white),
+              filled: true,
+              fillColor: Colors.black.withOpacity(0.4),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Colors.greenAccent, width: 2),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Colors.greenAccent, width: 2),
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 20,
               ),
             ),
           ),
