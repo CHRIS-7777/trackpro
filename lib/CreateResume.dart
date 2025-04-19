@@ -168,7 +168,7 @@ class _ResumeGeneratorPageState extends State<ResumeGeneratorPage> {
             borderSide: const BorderSide(color: Colors.greenAccent),
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(18),
             borderSide: const BorderSide(color: Colors.greenAccent),
           ),
         ),

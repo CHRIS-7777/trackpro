@@ -153,7 +153,7 @@ class _ExplorePageState extends State<ExplorePage> with SingleTickerProviderStat
       child: Padding(
         padding: EdgeInsets.all(32),
         child: Text(
-          "🚧 Learning Roadmap Coming Soon...",
+          "Roadmap Coming Soon...",
           style: TextStyle(color: Colors.white70, fontSize: 18),
           textAlign: TextAlign.center,
         ),

@@ -51,6 +51,14 @@ class _RecommendPageState extends State<RecommendPage> {
       'forks': 37,
       'tags': ['Editor', 'C++', 'Python','ML']
     },
+      {
+      'title': 'Network Model',
+      'description': 'A Convolutional Neuarl Network Model for Image Classification',
+      'author': 'Christopher',
+      'stars': 197,
+      'forks': 37,
+      'tags': ['Editor', 'C++', 'Python','ML']
+    },
   ];
 
   void _onTabTapped(int index) {
@@ -154,9 +162,18 @@ class _RecommendPageState extends State<RecommendPage> {
                       fillColor: const Color.fromARGB(255, 0, 0, 0),
                       prefixIcon: Icon(Icons.search, color: Colors.white),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
-                       borderSide: const BorderSide(color: Color.fromARGB(255, 137, 10, 10), width: 5),
-                      ),
+              borderRadius: BorderRadius.circular(18),
+              borderSide: const BorderSide(color: Colors.greenAccent),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(18),
+              borderSide: const BorderSide(color: Colors.greenAccent),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(18),
+              borderSide: const BorderSide(color: Colors.greenAccent, width: 2),
+            ),
+           
                     ),
                     onChanged: filterProjects,
                   ),
