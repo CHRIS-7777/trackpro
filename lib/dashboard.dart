@@ -125,7 +125,7 @@ class DashboardContent extends StatelessWidget {
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [Colors.black, Color(0xFF0D1B2A)],
+          colors: [Colors.black, Color.fromARGB(255, 0, 0, 0)],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         ),

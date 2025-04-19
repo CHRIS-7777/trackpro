@@ -158,7 +158,7 @@ class _ResumeGeneratorPageState extends State<ResumeGeneratorPage> {
         style: const TextStyle(color: Colors.white),
         validator: (value) => value!.isEmpty ? 'Required field' : null,
         decoration: InputDecoration(
-          prefixIcon: Icon(icon, color: Colors.greenAccent),
+          prefixIcon: Icon(icon, color: const Color.fromARGB(255, 255, 255, 255)),
           labelText: label,
           labelStyle: const TextStyle(color: Colors.white70),
           filled: true,

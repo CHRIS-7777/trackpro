@@ -81,7 +81,7 @@ class _CreateProjectPageState extends State<CreateProjectPage> {
       body: Container(
          decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [Colors.black, Color(0xFF0D1B2A)],
+          colors: [Colors.black, Color.fromARGB(255, 0, 0, 0)],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         ),
@@ -146,13 +146,13 @@ class _CreateProjectPageState extends State<CreateProjectPage> {
         labelText: label,
         labelStyle: const TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
         filled: true,
-        fillColor: const Color.fromARGB(0, 0, 0, 0),
+        fillColor: const Color.fromARGB(15, 238, 238, 238),
         enabledBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: Color.fromARGB(255, 249, 249, 249),width:1),
+          borderSide: const BorderSide(color:Colors.greenAccent,width:1),
           borderRadius: BorderRadius.circular(12),
         ),
         focusedBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: Color.fromARGB(255, 255, 255, 255), width: 1),
+           borderSide: const BorderSide(color:Colors.greenAccent,width:1),
           borderRadius: BorderRadius.circular(12),
         ),
       ),

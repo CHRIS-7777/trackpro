@@ -12,7 +12,7 @@ class ProfilePage extends StatelessWidget {
         backgroundColor: const Color.fromARGB(255, 0, 0, 0),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back, color: Colors.greenAccent),
           onPressed: () => Navigator.pushNamed(context, '/dash'),
         ),
         title: const Text(
@@ -28,7 +28,7 @@ class ProfilePage extends StatelessWidget {
       body: Container(
          decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [Colors.black, Color(0xFF0D1B2A)],
+          colors: [Colors.black, Color.fromARGB(255, 0, 0, 0)],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         ),

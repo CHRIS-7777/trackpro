@@ -155,7 +155,7 @@ class _RecommendPageState extends State<RecommendPage> {
                       prefixIcon: Icon(Icons.search, color: Colors.white),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
-                       borderSide: const BorderSide(color: Color.fromARGB(255, 255, 255, 255), width: 5),
+                       borderSide: const BorderSide(color: Color.fromARGB(255, 137, 10, 10), width: 5),
                       ),
                     ),
                     onChanged: filterProjects,

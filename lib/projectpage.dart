@@ -50,7 +50,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
       body: Container(
         decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [Colors.black, Color(0xFF0D1B2A)],
+          colors: [Colors.black, Color.fromARGB(255, 0, 0, 0)],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         ),
@@ -261,7 +261,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
     margin: const EdgeInsets.only(bottom: 16),
     padding: const EdgeInsets.all(16),
     decoration: BoxDecoration(
-      color: const Color(0xFF0F172A),
+       color: Colors.grey[900],
       borderRadius: BorderRadius.circular(20),
       boxShadow: [
         BoxShadow(
@@ -279,7 +279,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
           style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: Color(0xFF22C55E), // Green accent
+           color: Colors.greenAccent // Green accent
           ),
         ),
         const SizedBox(height: 8),
@@ -287,7 +287,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
           description ?? 'No description provided',
           style: const TextStyle(
             fontSize: 14,
-            color: Colors.white70,
+            color: Color.fromARGB(255, 255, 255, 255),
           ),
         ),
         const SizedBox(height: 12),
@@ -299,17 +299,17 @@ class _ProjectsPageState extends State<ProjectsPage> {
             Chip(
               label: Text("AI"),
               labelStyle: TextStyle(color: Colors.greenAccent),
-              backgroundColor: Color.fromARGB(90, 105, 240, 175),
+             backgroundColor: Color.fromARGB(59, 105, 240, 175),
             ),
             Chip(
               label: Text("Flutter"),
            labelStyle: TextStyle(color: Colors.greenAccent),
-              backgroundColor: Color.fromARGB(90, 105, 240, 175),
+             backgroundColor: Color.fromARGB(59, 105, 240, 175),
             ),
             Chip(
               label: Text("Dialogflow"),
               labelStyle: TextStyle(color: Colors.greenAccent),
-              backgroundColor: Color.fromARGB(90, 105, 240, 175),
+             backgroundColor: Color.fromARGB(59, 105, 240, 175),
             ),
           ],
         ),

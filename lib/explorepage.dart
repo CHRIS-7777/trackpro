@@ -168,24 +168,24 @@ class _ExplorePageState extends State<ExplorePage> with SingleTickerProviderStat
           controller: _promptController,
           style: const TextStyle(color: Colors.white),
           decoration: InputDecoration(
-            hintText: "Search a Topic (Ai, React...)",
+            hintText: "Search a Topic......",
             hintStyle: const TextStyle(color: Colors.white54),
             filled: true,
             fillColor: const Color.fromARGB(255, 0, 0, 0).withOpacity(0.4),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(18),
-              borderSide: const BorderSide(color: Colors.white),
+              borderSide: const BorderSide(color: Colors.greenAccent),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(18),
-              borderSide: const BorderSide(color: Colors.white),
+              borderSide: const BorderSide(color: Colors.greenAccent),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(18),
-              borderSide: const BorderSide(color: Colors.white, width: 2),
+              borderSide: const BorderSide(color: Colors.greenAccent, width: 2),
             ),
             suffixIcon: IconButton(
-              icon: const Icon(Icons.send, color: Colors.greenAccent),
+              icon: const Icon(Icons.send, color: Color.fromARGB(255, 255, 255, 255)),
               onPressed: _generateProjects,
             ),
           ),
@@ -323,7 +323,7 @@ class _ExplorePageState extends State<ExplorePage> with SingleTickerProviderStat
       body: Container(
         decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [Colors.black, Color(0xFF0D1B2A)],
+         colors: [Colors.black, Color.fromARGB(255, 0, 0, 0)],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         ),
