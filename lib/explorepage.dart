@@ -13,10 +13,27 @@ class ExplorePage extends StatefulWidget {
 
 class _ExplorePageState extends State<ExplorePage> with SingleTickerProviderStateMixin {
   final TextEditingController _promptController = TextEditingController();
+  final TextEditingController _roadmapTechController = TextEditingController();
   final List<Map<String, String>> _generatedProjects = [];
   bool _loading = false;
+  bool _roadmapLoading = false;
   int _currentIndex = 1;
-  int _selectedTab = 0; // 0: Roadmap, 1: Search Project
+  int _selectedTab = 0;
+  String? _generatedRoadmap;
+  List<String> _roadmapSteps = [];
+
+  // Dropdown options
+  String _selectedGoalLevel = 'Beginner';
+  final List<String> _goalLevels = ['Beginner', 'Intermediate', 'Advanced'];
+  
+  String _selectedTimeframe = '3 months';
+  final List<String> _timeframes = ['1 month', '3 months', '6 months', '1 year'];
+
+  @override
+  void initState() {
+    super.initState();
+    _roadmapTechController.text = 'React';
+  }
 
   void _onTabTapped(int index) {
     setState(() => _currentIndex = index);
@@ -98,6 +115,49 @@ class _ExplorePageState extends State<ExplorePage> with SingleTickerProviderStat
     }
   }
 
+  Future<void> _generateRoadmap() async {
+    final tech = _roadmapTechController.text.trim();
+    if (tech.isEmpty) return;
+
+    setState(() {
+      _roadmapLoading = true;
+      _generatedRoadmap = null;
+      _roadmapSteps = [];
+    });
+
+    try {
+      final prompt = """
+      Create a detailed learning roadmap for $tech at $_selectedGoalLevel level 
+      to be completed in $_selectedTimeframe. 
+      Provide the roadmap as a numbered list of steps with clear milestones.
+      Each step should be concise but informative.
+      Format each step as: "1. [Step description]"
+      """;
+
+      final result = await Gemini.instance.text(prompt);
+      final content = result?.output ?? 'No roadmap generated';
+
+      // Parse the response into individual steps
+      final steps = content.split('\n')
+          .where((line) => line.trim().isNotEmpty && line.trim()[0].contains(RegExp(r'[0-9]')))
+          .map((line) => line.trim())
+          .toList();
+
+      setState(() {
+        _generatedRoadmap = content;
+        _roadmapSteps = steps;
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to generate roadmap: $e')),
+      );
+    }
+
+    setState(() {
+      _roadmapLoading = false;
+    });
+  }
+
   Widget _buildToggleButtons() {
     return Container(
       decoration: BoxDecoration(
@@ -118,7 +178,7 @@ class _ExplorePageState extends State<ExplorePage> with SingleTickerProviderStat
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
-                "Roadmap Flow",
+                "Roadmap ",
                 style: TextStyle(
                   color: _selectedTab == 0 ? Colors.black : Colors.white,
                   fontWeight: FontWeight.bold,
@@ -135,7 +195,7 @@ class _ExplorePageState extends State<ExplorePage> with SingleTickerProviderStat
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
-                "Search Project",
+                "  Project  ",
                 style: TextStyle(
                   color: _selectedTab == 1 ? Colors.black : Colors.white,
                   fontWeight: FontWeight.bold,
@@ -149,15 +209,294 @@ class _ExplorePageState extends State<ExplorePage> with SingleTickerProviderStat
   }
 
   Widget _buildRoadmapSection() {
-    return const Center(
-      child: Padding(
-        padding: EdgeInsets.all(32),
-        child: Text(
-          "Roadmap Coming Soon...",
-          style: TextStyle(color: Colors.white70, fontSize: 18),
-          textAlign: TextAlign.center,
-        ),
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Generate Learning Roadmap',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Enter a technology or skill to generate a personalized learning roadmap',
+            style: TextStyle(
+              color: Colors.white70,
+              fontSize: 16,
+            ),
+          ),
+          const SizedBox(height: 24),
+          
+          // Technology Input
+          Text(
+            'Technology',
+            style: TextStyle(
+              color: Colors.greenAccent,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _roadmapTechController,
+            style: const TextStyle(color: Colors.white),
+            decoration: InputDecoration(
+              hintText: "Enter technology (e.g. React, Flutter)",
+              hintStyle: const TextStyle(color: Colors.white54),
+              filled: true,
+              fillColor: Colors.black.withOpacity(0.4),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Colors.greenAccent),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Colors.greenAccent),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Colors.greenAccent, width: 2),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          
+          // Goal Level Dropdown
+          Text(
+            'Goal Level',
+            style: TextStyle(
+              color: Colors.greenAccent,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.4),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.greenAccent),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: DropdownButton<String>(
+              value: _selectedGoalLevel,
+              isExpanded: true,
+              dropdownColor: Colors.black.withOpacity(0.9),
+              underline: const SizedBox(),
+              style: const TextStyle(color: Colors.white),
+              items: _goalLevels.map((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+              onChanged: (String? newValue) {
+                setState(() {
+                  _selectedGoalLevel = newValue!;
+                });
+              },
+            ),
+          ),
+          const SizedBox(height: 16),
+          
+          // Timeframe Dropdown
+          Text(
+            'Timeframe',
+            style: TextStyle(
+              color: Colors.greenAccent,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.4),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.greenAccent),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: DropdownButton<String>(
+              value: _selectedTimeframe,
+              isExpanded: true,
+              dropdownColor: Colors.black.withOpacity(0.9),
+              underline: const SizedBox(),
+              style: const TextStyle(color: Colors.white),
+              items: _timeframes.map((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+              onChanged: (String? newValue) {
+                setState(() {
+                  _selectedTimeframe = newValue!;
+                });
+              },
+            ),
+          ),
+          const SizedBox(height: 32),
+          
+          // Generate Roadmap Button
+          Center(
+            child: ElevatedButton(
+              onPressed: _generateRoadmap,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.greenAccent,
+                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: _roadmapLoading
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        color: Colors.black,
+                        strokeWidth: 3,
+                      ),
+                    )
+                  : const Text(
+                      'Generate Roadmap',
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+            ),
+          ),
+          const SizedBox(height: 24),
+          
+          // Roadmap Display
+          if (_roadmapLoading)
+            const Center(child: CircularProgressIndicator(color: Colors.greenAccent))
+          else if (_roadmapSteps.isNotEmpty)
+            _buildRoadmapVisualization()
+          else if (_generatedRoadmap != null)
+            Text(
+              _generatedRoadmap!,
+              style: const TextStyle(color: Colors.white70),
+            ),
+        ],
       ),
+    );
+  }
+
+  Widget _buildRoadmapVisualization() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          decoration: BoxDecoration(
+            color: Colors.black.withOpacity(0.3),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.greenAccent),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.greenAccent.withOpacity(0.1),
+                blurRadius: 15,
+                spreadRadius: 2,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: const Text(
+            'Your Learning Path Flow',
+            style: TextStyle(
+              color: Colors.greenAccent,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        Column(
+          children: _roadmapSteps.asMap().entries.map((entry) {
+            final index = entry.key;
+            final step = entry.value;
+            return Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.4),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.greenAccent.withOpacity(0.7), width: 2.5),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.5),
+                        blurRadius: 10,
+                        spreadRadius: 1,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: 30,
+                        height: 30,
+                        decoration: BoxDecoration(
+                          color: Colors.greenAccent.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(18),
+                          border: Border.all(color: Colors.greenAccent),
+                        ),
+                        child: Center(
+                          child: Text(
+                            '${index + 1}',
+                            style: const TextStyle(
+                              color: Colors.greenAccent,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Text(
+                          step,
+                          style: const TextStyle(
+                            color: Color.fromARGB(255, 255, 255, 255),
+                            fontSize: 15,
+                            height: 1.5,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (index != _roadmapSteps.length - 1)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Column(
+                      children: [
+                        Container(
+                          height: 20,
+                          width: 2,
+                          color: Colors.greenAccent.withOpacity(0.5),
+                        ),
+                        Icon(
+                          Icons.arrow_downward,
+                          color: Colors.greenAccent.withOpacity(0.8),
+                          size: 25,
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            );
+          }).toList(),
+        ),
+      ],
     );
   }
 
@@ -322,12 +661,12 @@ class _ExplorePageState extends State<ExplorePage> with SingleTickerProviderStat
       extendBodyBehindAppBar: true,
       body: Container(
         decoration: const BoxDecoration(
-        gradient: LinearGradient(
-         colors: [Colors.black, Color.fromARGB(255, 0, 0, 0)],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
+          gradient: LinearGradient(
+            colors: [Colors.black, Color.fromARGB(255, 0, 0, 0)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
         ),
-      ),
         child: SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(16.0),
@@ -343,32 +682,30 @@ class _ExplorePageState extends State<ExplorePage> with SingleTickerProviderStat
           ),
         ),
       ),
-     bottomNavigationBar: Container(
- 
-
-  child: ClipRRect(
-    child: BackdropFilter(
-      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-      child: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        backgroundColor: const Color.fromARGB(255, 0, 0, 0),
-        elevation: 0,
-        selectedItemColor: Colors.greenAccent,
-        unselectedItemColor: Colors.white.withOpacity(0.7),
-        showUnselectedLabels: false,
-        type: BottomNavigationBarType.fixed,
-        onTap: _onTabTapped,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.folder), label: 'Projects'),
-          BottomNavigationBarItem(icon: Icon(Icons.explore), label: 'Explore'),
-          BottomNavigationBarItem(icon: Icon(Icons.add), label: 'Add'),
-          BottomNavigationBarItem(icon: Icon(Icons.recommend), label: 'Suggest'),
-          BottomNavigationBarItem(icon: Icon(Icons.document_scanner), label: 'Resume'),
-        ],
+      bottomNavigationBar: Container(
+        child: ClipRRect(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: BottomNavigationBar(
+              currentIndex: _currentIndex,
+              backgroundColor: const Color.fromARGB(255, 0, 0, 0),
+              elevation: 0,
+              selectedItemColor: Colors.greenAccent,
+              unselectedItemColor: Colors.white.withOpacity(0.7),
+              showUnselectedLabels: false,
+              type: BottomNavigationBarType.fixed,
+              onTap: _onTabTapped,
+              items: const [
+                BottomNavigationBarItem(icon: Icon(Icons.folder), label: 'Projects'),
+                BottomNavigationBarItem(icon: Icon(Icons.explore), label: 'Explore'),
+                BottomNavigationBarItem(icon: Icon(Icons.add), label: 'Add'),
+                BottomNavigationBarItem(icon: Icon(Icons.recommend), label: 'Suggest'),
+                BottomNavigationBarItem(icon: Icon(Icons.document_scanner), label: 'Resume'),
+              ],
+            ),
+          ),
+        ),
       ),
-    ),
-  ),
-),
     );
   }
 }
