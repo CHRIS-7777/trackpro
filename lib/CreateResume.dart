@@ -25,7 +25,6 @@ class _ResumeGeneratorPageState extends State<ResumeGeneratorPage> {
   final TextEditingController _educationController = TextEditingController();
 
   List<Map<String, dynamic>> _projects = [];
-  bool _isLoading = false;
   bool _isGenerating = false;
   final user = FirebaseAuth.instance.currentUser;
 
@@ -40,7 +39,6 @@ class _ResumeGeneratorPageState extends State<ResumeGeneratorPage> {
   Future<void> _loadProjects() async {
     if (user == null) return;
 
-    setState(() => _isLoading = true);
 
     final projectsSnapshot = await FirebaseFirestore.instance
         .collection('users')
@@ -56,7 +54,6 @@ class _ResumeGeneratorPageState extends State<ResumeGeneratorPage> {
           'description': data['description'] ?? 'No description',
         };
       }).toList();
-      _isLoading = false;
     });
   }
 
