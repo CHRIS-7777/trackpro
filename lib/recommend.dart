@@ -16,7 +16,6 @@ class _RecommendPageState extends State<RecommendPage> {
   String searchQuery = "";
   bool isLoading = true;
   String? error;
-  int _currentIndex = 0;
 
   final List<Map<String, dynamic>> sampleProjects = [
     {
@@ -63,7 +62,6 @@ class _RecommendPageState extends State<RecommendPage> {
 
   void _onTabTapped(int index) {
     setState(() {
-      _currentIndex = index;
     });
 
     final routes = ['/projects', '/explore', '/add', '/suggest', '/resume'];
