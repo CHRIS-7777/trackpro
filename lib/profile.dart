@@ -160,16 +160,6 @@ class ProfilePage extends StatelessWidget {
     );
   }
 
-  Widget _platformIcon(String assetPath, String url) {
-    return InkWell(
-      onTap: () => launchUrl(Uri.parse(url)),
-      child: CircleAvatar(
-        backgroundColor: Colors.transparent,
-        radius: 15,
-        backgroundImage: AssetImage(assetPath),
-      ),
-    );
-  }
 
   Widget _buildStatsRow() {
     return LayoutBuilder(
