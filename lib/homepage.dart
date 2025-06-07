@@ -193,6 +193,7 @@ class HomePage extends StatelessWidget {
                             MaterialPageRoute(builder: (_) => const DashboardPage()),
                           );
                         });
+                        return null;
                       },
                     );
                   },
