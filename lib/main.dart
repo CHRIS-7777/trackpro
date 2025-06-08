@@ -11,7 +11,6 @@ import 'package:trackpro/profile.dart';
 import 'package:trackpro/projectpage.dart';
 import 'package:trackpro/explorepage.dart';
 import 'package:trackpro/recommend.dart';
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
     Gemini.init(apiKey: 'AIzaSyDYQqol4UPKrBujeKUfWxMMNoscZzfGqiM'); // Replace with your Gemini API key
@@ -25,7 +24,6 @@ void main() async {
   );
   runApp(MyApp());
 }
-
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
