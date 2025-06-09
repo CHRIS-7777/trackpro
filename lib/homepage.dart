@@ -190,7 +190,7 @@ class HomePage extends StatelessWidget {
                         Future.delayed(const Duration(milliseconds: 300), () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (_) => const DashboardPage()),
+                            MaterialPageRoute(builder: (_) => DashboardPage()),
                           );
                         });
                         return null;

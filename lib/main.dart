@@ -11,9 +11,10 @@ import 'package:trackpro/profile.dart';
 import 'package:trackpro/projectpage.dart';
 import 'package:trackpro/explorepage.dart';
 import 'package:trackpro/recommend.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-    Gemini.init(apiKey: 'AIzaSyDYQqol4UPKrBujeKUfWxMMNoscZzfGqiM'); // Replace with your Gemini API key
+  Gemini.init(apiKey: 'AIzaSyDYQqol4UPKrBujeKUfWxMMNoscZzfGqiM');
   await Firebase.initializeApp(
     options: FirebaseOptions(
       apiKey: 'AIzaSyA5lnFpUEnqfV8U-QBohgUIamptQS_7goA',
@@ -22,8 +23,9 @@ void main() async {
       projectId: 'trackpro-fcc7d',
     ),
   );
-  runApp(MyApp());
+  runApp(const MyApp());
 }
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -33,25 +35,23 @@ class MyApp extends StatelessWidget {
       title: 'TrackPro',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        
         brightness: Brightness.dark,
         useMaterial3: true,
       ),
       initialRoute: '/dash',
-        routes: {
-  '/dash': (context) => DashboardPage(),
-  '/login': (context) => LoginPage(),
-  '/signup': (context) => SignUpPage(),
-    '/home': (context) => HomePage(),
-     '/profile': (context) => ProfilePage(),
-'/resume': (context) => const ResumeGeneratorPage(),
-  '/projects': (context) => ProjectsPage(),
-  '/explore': (context) => ExplorePage(),
-  '/suggest': (context) => RecommendPage(),
-   '/add': (context) => CreateProjectPage(),
-  // '/settings': (context) => SettingsPage(),
-},
-
+      routes: {
+        '/dash': (context) => const DashboardPage(),
+        '/login': (context) => const LoginPage(),
+        '/signup': (context) => const SignUpPage(),
+        '/home': (context) => const HomePage(),
+        '/profile': (context) => const ProfilePage(),
+        '/resume': (context) => const ResumeGeneratorPage(),
+        '/projects': (context) => const ProjectsPage(),
+        '/explore': (context) => const ExplorePage(),
+        '/suggest': (context) => const RecommendPage(),
+        '/add': (context) => const CreateProjectPage(),
+        '/create-resume': (context) => const ResumeGeneratorPage(),
+      },
     );
   }
 }

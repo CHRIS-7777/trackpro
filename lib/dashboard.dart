@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:trackpro/github_connect_dialog.dart';
 import 'package:trackpro/platform_connect_dialogs.dart';
@@ -21,15 +23,32 @@ class DashboardPage extends StatefulWidget {
 }
 
 class _DashboardPageState extends State<DashboardPage> {
-  int _currentIndex = -1;
+  int githubProjectCount = 0;
 
-  final List<Widget> _pages = [
-    DashboardContent(),
-    Placeholder(color: Colors.transparent),
-    Placeholder(color: Colors.transparent),
-    Placeholder(color: Colors.transparent),
-    Placeholder(color: Colors.transparent),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    fetchGitHubRepoCountFromFirestore();
+  }
+
+  Future<void> fetchGitHubRepoCountFromFirestore() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final docRef = FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('connected_platforms')
+          .doc('github');
+
+      final snapshot = await docRef.get();
+      if (snapshot.exists) {
+        final data = snapshot.data();
+        setState(() {
+          githubProjectCount = data?['public_repos'] ?? 0;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -59,11 +78,6 @@ class _DashboardPageState extends State<DashboardPage> {
               onTap: () => Navigator.pushNamed(context, '/create-resume'),
             ),
             ListTile(
-              leading: Icon(Icons.article),
-              title: Text("Settings"),
-              onTap: () => Navigator.pushNamed(context, '/resumes'),
-            ),
-            ListTile(
               leading: Icon(Icons.logout),
               title: Text("Logout"),
               onTap: () => Navigator.pushNamed(context, '/login'),
@@ -72,56 +86,45 @@ class _DashboardPageState extends State<DashboardPage> {
         ),
       ),
       appBar: AppBar(
-        title: const Text("CHRISTY",style:TextStyle(fontSize: 20,fontWeight: FontWeight.bold,color: Colors.greenAccent)),
+        title: const Text("DASHBOARD", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.greenAccent)),
         backgroundColor: Colors.black,
         actions: [
           IconButton(
-            icon: const Icon(Icons.account_circle,size:30),
+            icon: const Icon(Icons.account_circle, size: 30),
             onPressed: () {
               Navigator.pushNamed(context, '/profile');
             },
           )
         ],
       ),
-      body: _pages[_currentIndex == -1 ? 0 : _currentIndex],
-      bottomNavigationBar: Container(
- 
-  child: BottomNavigationBar(
-    currentIndex: _currentIndex == -1 ? 0 : _currentIndex,
-    backgroundColor: const Color.fromARGB(255, 0, 0, 0),
-    elevation: 0,
-    selectedItemColor: Colors.white,
-    unselectedItemColor: Colors.white,
-    selectedIconTheme: const IconThemeData(color: Colors.white),
-    unselectedIconTheme: const IconThemeData(color: Colors.white),
-    selectedLabelStyle: const TextStyle(color: Colors.white),
-    unselectedLabelStyle: const TextStyle(color: Colors.white),
-    showUnselectedLabels: false,
-    type: BottomNavigationBarType.fixed,
-    onTap: (index) {
-      setState(() {
-        _currentIndex = index;
-      });
-      final routes = ['/projects', '/explore', '/add', '/suggest', '/resume'];
-      if (index < routes.length) {
-        Navigator.pushNamed(context, routes[index]);
-      }
-    },
-    items: const [
-      BottomNavigationBarItem(icon: Icon(Icons.folder), label: 'Projects'),
-      BottomNavigationBarItem(icon: Icon(Icons.explore), label: 'Explore'),
-      BottomNavigationBarItem(icon: Icon(Icons.add), label: 'Add'),
-      BottomNavigationBarItem(icon: Icon(Icons.recommend), label: 'Suggest'),
-      BottomNavigationBarItem(icon: Icon(Icons.document_scanner), label: 'Resume'),
-    ],
-  ),
-),
-
+      body: DashboardContent(githubRepoCount: githubProjectCount),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: 0,
+        backgroundColor: Colors.black,
+        selectedItemColor: Colors.greenAccent,
+        unselectedItemColor: Colors.white60,
+        onTap: (index) {
+          final routes = ['/projects', '/explore', '/add', '/suggest', '/resume'];
+          if (index < routes.length) {
+            Navigator.pushNamed(context, routes[index]);
+          }
+        },
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.folder), label: 'Projects'),
+          BottomNavigationBarItem(icon: Icon(Icons.explore), label: 'Explore'),
+          BottomNavigationBarItem(icon: Icon(Icons.add), label: 'Add'),
+          BottomNavigationBarItem(icon: Icon(Icons.recommend), label: 'Suggest'),
+          BottomNavigationBarItem(icon: Icon(Icons.document_scanner), label: 'Resume'),
+        ],
+      ),
     );
   }
 }
 
 class DashboardContent extends StatelessWidget {
+  final int githubRepoCount;
+  const DashboardContent({super.key, required this.githubRepoCount});
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -137,34 +140,23 @@ class DashboardContent extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const Center(
-                  child: Text(
-                    "TrackPro",
-                    style: TextStyle(
-                      fontSize: 30,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.greenAccent,
-                      shadows: [
-                        Shadow(color: Colors.greenAccent, blurRadius: 15),
-                      ],
-                    ),
-                  ),
+            const Center(
+              child: Text(
+                "TrackPro",
+                style: TextStyle(
+                  fontSize: 30,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.greenAccent,
+                  shadows: [Shadow(color: Colors.greenAccent, blurRadius: 15)],
                 ),
-                const SizedBox(height: 24),
-                const Center(
-                  child: Text(
-                    "Connected Platforms",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            const Center(
+              child: Text(
+                "Connected Platforms",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.white),
+              ),
             ),
             const SizedBox(height: 12),
             GridView.count(
@@ -174,112 +166,76 @@ class DashboardContent extends StatelessWidget {
               crossAxisSpacing: 16,
               mainAxisSpacing: 16,
               children: [
-                _buildPlatformCard("GitHub", "Connect", "assets/github.png", () {
-  showDialog(
-    context: context,
-    builder: (context) => const GitHubConnectDialog(),
-  );
-}),
-  _buildPlatformCard("LinkedIn", "Connect", "assets/linkedin.png", () {
-      showDialog(
-        context: context,
-        builder: (context) => const LinkedInConnectDialog(),
-      );
-    }),
-    _buildPlatformCard("Geekforgeek", "Connect", "assets/gfg.png", () {
-      showDialog(
-        context: context,
-        builder: (context) => const GFGConnectDialog(),
-      );
-    }),
-    _buildPlatformCard("LeetCode", "Connect", "assets/leetcode.png", () {
-      showDialog(
-        context: context,
-        builder: (context) => const LeetCodeConnectDialog(),
-      );
-    }),
+                _buildPlatformCard("GitHub", "Connected", "assets/github.png", () {
+                  showDialog(context: context, builder: (_) => const GitHubConnectDialog());
+                }),
+                _buildPlatformCard("LinkedIn", "Connect", "assets/linkedin.png", () {
+                  showDialog(context: context, builder: (_) => const LinkedInConnectDialog());
+                }),
+                _buildPlatformCard("GeeksforGeeks", "Connect", "assets/gfg.png", () {
+                  showDialog(context: context, builder: (_) => const GFGConnectDialog());
+                }),
+                _buildPlatformCard("LeetCode", "Connect", "assets/leetcode.png", () {
+                  showDialog(context: context, builder: (_) => const LeetCodeConnectDialog());
+                }),
               ],
             ),
             const SizedBox(height: 24),
-            Row(
-              children: [
-                Expanded(child: _buildStatsCard("Total Resumes", "0", "Create your first resume")),
-              ],
-            ),
+            _buildStatsCard("Total Resumes", "0", "Create your first resume"),
             const SizedBox(height: 10),
-            Row(
-              children: [
-                Expanded(child: _buildStatsCard("Projects", "2", "Projects saved in your profile")),
-              ],
-            ),
+            _buildStatsCard("Projects", "$githubRepoCount", "Projects saved in your profile"),
             const SizedBox(height: 20),
             const Text(
               "Weekly Activity",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-              ),
+              style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 12),
             SizedBox(
               height: 200,
-              width: 540,
-              child: LineChart(
-                LineChartData(
-                  titlesData: FlTitlesData(
-                    leftTitles: AxisTitles(
-                      sideTitles: SideTitles(showTitles: true),
-                    ),
-                    bottomTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        getTitlesWidget: (value, meta) {
-                          final days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-                          return Text(
-                            days[value.toInt()],
-                            style: const TextStyle(color: Colors.white70, fontSize: 12),
-                          );
-                        },
-                        interval: 1,
-                      ),
+              child: LineChart(LineChartData(
+                titlesData: FlTitlesData(
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      getTitlesWidget: (value, _) {
+                        final days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+                        return Text(days[value.toInt()], style: const TextStyle(color: Colors.white70, fontSize: 12));
+                      },
+                      interval: 1,
                     ),
                   ),
-                  gridData: FlGridData(show: true),
-                  borderData: FlBorderData(show: true),
-                  lineBarsData: [
-                    LineChartBarData(
-                      isCurved: true,
-                      color: Colors.greenAccent,
-                      barWidth: 3,
-                      belowBarData: BarAreaData(show: true, color: Colors.greenAccent.withOpacity(0.2)),
-                      spots: const [
-                        FlSpot(0, 2),
-                        FlSpot(1, 4),
-                        FlSpot(2, 1),
-                        FlSpot(3, 5),
-                        FlSpot(4, 3),
-                        FlSpot(5, 4.5),
-                        FlSpot(6, 2),
-                      ],
-                    ),
-                  ],
+                  leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: true)),
                 ),
-              ),
+                gridData: FlGridData(show: true),
+                borderData: FlBorderData(show: true),
+                lineBarsData: [
+                  LineChartBarData(
+                    isCurved: true,
+                    color: Colors.greenAccent,
+                    barWidth: 3,
+                    belowBarData: BarAreaData(show: true, color: Colors.greenAccent.withOpacity(0.2)),
+                    spots: const [
+                      FlSpot(0, 2),
+                      FlSpot(1, 4),
+                      FlSpot(2, 1),
+                      FlSpot(3, 5),
+                      FlSpot(4, 3),
+                      FlSpot(5, 4.5),
+                      FlSpot(6, 2),
+                    ],
+                  ),
+                ],
+              )),
             ),
             const SizedBox(height: 24),
             const Text(
               "Explore More",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-              ),
+              style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 12),
             GridView.count(
               shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
+              physics: const NeverScrollableScrollPhysics(),
               crossAxisCount: 2,
               crossAxisSpacing: 16,
               mainAxisSpacing: 16,
@@ -338,7 +294,7 @@ class DashboardContent extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Card(
-       color: const Color.fromARGB(32, 255, 255, 255),
+        color: const Color.fromARGB(32, 255, 255, 255),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
