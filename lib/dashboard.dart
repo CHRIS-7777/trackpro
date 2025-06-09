@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:trackpro/github_connect_dialog.dart';
+import 'package:trackpro/platform_connect_dialogs.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:fl_chart/fl_chart.dart';
 
@@ -70,7 +72,7 @@ class _DashboardPageState extends State<DashboardPage> {
         ),
       ),
       appBar: AppBar(
-        title: const Text("DASHBOARD",style:TextStyle(fontSize: 20,fontWeight: FontWeight.bold,color: Colors.greenAccent)),
+        title: const Text("CHRISTY",style:TextStyle(fontSize: 20,fontWeight: FontWeight.bold,color: Colors.greenAccent)),
         backgroundColor: Colors.black,
         actions: [
           IconButton(
@@ -172,10 +174,30 @@ class DashboardContent extends StatelessWidget {
               crossAxisSpacing: 16,
               mainAxisSpacing: 16,
               children: [
-                _buildPlatformCard("GitHub", "Connect", "assets/github.png", () => _launchURL("https://github.com")),
-                _buildPlatformCard("LinkedIn", "Connect ", "assets/linkedin.png", () => _launchURL("https://linkedin.com")),
-                _buildPlatformCard("Credly", "Connect ", "assets/credly.png", () => _launchURL("https://credly.com")),
-                _buildPlatformCard("LeetCode", "Connect", "assets/leetcode.png", () => _launchURL("https://leetcode.com")),
+                _buildPlatformCard("GitHub", "Connect", "assets/github.png", () {
+  showDialog(
+    context: context,
+    builder: (context) => const GitHubConnectDialog(),
+  );
+}),
+  _buildPlatformCard("LinkedIn", "Connect", "assets/linkedin.png", () {
+      showDialog(
+        context: context,
+        builder: (context) => const LinkedInConnectDialog(),
+      );
+    }),
+    _buildPlatformCard("Geekforgeek", "Connect", "assets/gfg.png", () {
+      showDialog(
+        context: context,
+        builder: (context) => const GFGConnectDialog(),
+      );
+    }),
+    _buildPlatformCard("LeetCode", "Connect", "assets/leetcode.png", () {
+      showDialog(
+        context: context,
+        builder: (context) => const LeetCodeConnectDialog(),
+      );
+    }),
               ],
             ),
             const SizedBox(height: 24),
