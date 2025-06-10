@@ -7,6 +7,7 @@ import 'package:trackpro/createproject.dart';
 import 'package:trackpro/dashboard.dart';
 import 'package:trackpro/homepage.dart';
 import 'package:trackpro/login.dart';
+import 'package:trackpro/platformstat.dart';
 import 'package:trackpro/profile.dart';
 import 'package:trackpro/projectpage.dart';
 import 'package:trackpro/explorepage.dart';
@@ -51,8 +52,7 @@ class MyApp extends StatelessWidget {
         '/suggest': (context) => const RecommendPage(),
         '/add': (context) => const CreateProjectPage(),
         '/create-resume': (context) => const ResumeGeneratorPage(),
-       
-
+        '/stats': (context) => const PlatformStatsPage(),
       },
     );
   }
