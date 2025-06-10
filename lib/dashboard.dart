@@ -1,9 +1,11 @@
+import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
 import 'package:trackpro/platform_connect_dialogs.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 void _launchURL(String url) async {
   final Uri uri = Uri.parse(url);
@@ -23,11 +25,20 @@ class DashboardPage extends StatefulWidget {
 
 class _DashboardPageState extends State<DashboardPage> {
   int githubProjectCount = 0;
+  Map<String, dynamic> platformData = {};
+  bool isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    fetchGitHubRepoCountFromFirestore();
+    _loadPlatformData();
+  }
+
+  Future<void> _loadPlatformData() async {
+    setState(() => isLoading = true);
+    await fetchGitHubRepoCountFromFirestore();
+    await _fetchAllPlatformData();
+    setState(() => isLoading = false);
   }
 
   Future<void> fetchGitHubRepoCountFromFirestore() async {
@@ -49,6 +60,153 @@ class _DashboardPageState extends State<DashboardPage> {
     }
   }
 
+  Future<void> _fetchAllPlatformData() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final snapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('connected_platforms')
+          .get();
+
+      setState(() {
+        platformData = {
+          for (var doc in snapshot.docs) doc.id: doc.data()
+        };
+      });
+    }
+  }
+
+  Future<void> _refreshAllPlatforms() async {
+    setState(() => isLoading = true);
+    
+    try {
+      // Refresh GitHub data
+      if (platformData['github'] != null) {
+        await _refreshGitHubData(platformData['github']['username']);
+      }
+      
+      // Refresh LeetCode data
+      if (platformData['leetcode'] != null) {
+        await _refreshLeetCodeData(platformData['leetcode']['username']);
+      }
+      
+      // Refresh GFG data
+      if (platformData['gfg'] != null) {
+        await _refreshGFGData(platformData['gfg']['username']);
+      }
+      
+      // Reload all data
+      await _loadPlatformData();
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Platform data refreshed successfully!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error refreshing: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      setState(() => isLoading = false);
+    }
+  }
+
+  Future<void> _refreshGitHubData(String username) async {
+    try {
+      final response = await http.get(
+        Uri.parse("https://api.github.com/users/$username"),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final user = FirebaseAuth.instance.currentUser;
+
+        if (user != null) {
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(user.uid)
+              .collection('connected_platforms')
+              .doc('github')
+              .update({
+            'public_repos': data['public_repos'],
+            'updated_at': FieldValue.serverTimestamp(),
+          });
+        }
+      }
+    } catch (e) {
+      throw Exception("Failed to refresh GitHub data");
+    }
+  }
+
+  Future<void> _refreshLeetCodeData(String username) async {
+    try {
+      final response = await http.get(
+        Uri.parse("https://leetcode-stats-api.herokuapp.com/$username"),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final user = FirebaseAuth.instance.currentUser;
+
+        if (user != null) {
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(user.uid)
+              .collection('connected_platforms')
+              .doc('leetcode')
+              .update({
+            'total_solved': data['totalSolved'],
+            'easy_solved': data['easySolved'],
+            'medium_solved': data['mediumSolved'],
+            'hard_solved': data['hardSolved'],
+            'acceptance_rate': data['acceptanceRate'],
+            'ranking': data['ranking'],
+            'streak': data['streak'],
+            'updated_at': FieldValue.serverTimestamp(),
+          });
+        }
+      }
+    } catch (e) {
+      throw Exception("Failed to refresh LeetCode data");
+    }
+  }
+
+  Future<void> _refreshGFGData(String username) async {
+    try {
+      final response = await http.get(
+        Uri.parse("https://geeks-for-geeks-api.vercel.app/$username"),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final user = FirebaseAuth.instance.currentUser;
+
+        if (user != null) {
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(user.uid)
+              .collection('connected_platforms')
+              .doc('gfg')
+              .update({
+            'institute_rank': data['institute_rank'],
+            'total_score': data['overall_coding_score'],
+            'problems_solved': data['problems_solved'],
+            'monthly_coding_score': data['monthly_coding_score'],
+            'updated_at': FieldValue.serverTimestamp(),
+          });
+        }
+      }
+    } catch (e) {
+      throw Exception("Failed to refresh GFG data");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -62,30 +220,31 @@ class _DashboardPageState extends State<DashboardPage> {
                   style: TextStyle(color: Colors.greenAccent, fontSize: 24)),
             ),
             ListTile(
-              leading: Icon(Icons.article),
-              title: Text("Profile"),
+              leading: const Icon(Icons.article),
+              title: const Text("Profile"),
               onTap: () => Navigator.pushNamed(context, '/profile'),
             ),
             ListTile(
-              leading: Icon(Icons.dashboard),
-              title: Text("Dashboard"),
+              leading: const Icon(Icons.dashboard),
+              title: const Text("Dashboard"),
               onTap: () => Navigator.pushNamed(context, '/dash'),
             ),
             ListTile(
-              leading: Icon(Icons.create),
-              title: Text("Create Resume"),
+              leading: const Icon(Icons.create),
+              title: const Text("Create Resume"),
               onTap: () => Navigator.pushNamed(context, '/create-resume'),
             ),
             ListTile(
-              leading: Icon(Icons.logout),
-              title: Text("Logout"),
+              leading: const Icon(Icons.logout),
+              title: const Text("Logout"),
               onTap: () => Navigator.pushNamed(context, '/login'),
             ),
           ],
         ),
       ),
       appBar: AppBar(
-        title: const Text("DASHBOARD", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.greenAccent)),
+        title: const Text("DASHBOARD", 
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.greenAccent)),
         backgroundColor: Colors.black,
         actions: [
           IconButton(
@@ -96,7 +255,13 @@ class _DashboardPageState extends State<DashboardPage> {
           )
         ],
       ),
-      body: DashboardContent(githubRepoCount: githubProjectCount),
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator(color: Colors.greenAccent))
+          : DashboardContent(
+              githubRepoCount: githubProjectCount,
+              platformData: platformData,
+              onRefresh: _refreshAllPlatforms,
+            ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: 0,
         backgroundColor: Colors.black,
@@ -122,7 +287,19 @@ class _DashboardPageState extends State<DashboardPage> {
 
 class DashboardContent extends StatelessWidget {
   final int githubRepoCount;
-  const DashboardContent({super.key, required this.githubRepoCount});
+  final Map<String, dynamic> platformData;
+  final VoidCallback onRefresh;
+
+  const DashboardContent({
+    super.key,
+    required this.githubRepoCount,
+    required this.platformData,
+    required this.onRefresh,
+  });
+
+  String _getPlatformStatus(String platform) {
+    return platformData.containsKey(platform) ? "Connected" : "Connect";
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -151,11 +328,20 @@ class DashboardContent extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 24),
-            const Center(
-              child: Text(
-                "Connected Platforms",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.white),
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text(
+                  "Connected Platforms",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.white),
+                ),
+                const SizedBox(width: 10),
+                IconButton(
+                  icon: const Icon(Icons.refresh, color: Colors.greenAccent),
+                  onPressed: onRefresh,
+                  tooltip: 'Refresh platform data',
+                ),
+              ],
             ),
             const SizedBox(height: 12),
             GridView.count(
@@ -165,18 +351,42 @@ class DashboardContent extends StatelessWidget {
               crossAxisSpacing: 16,
               mainAxisSpacing: 16,
               children: [
-                _buildPlatformCard("GitHub", "Connected", "assets/github.png", () {
-                  showDialog(context: context, builder: (_) => const GitHubConnectDialog());
-                }),
-                _buildPlatformCard("LinkedIn", "Connect", "assets/linkedin.png", () {
-                  showDialog(context: context, builder: (_) => const LinkedInConnectDialog());
-                }),
-                _buildPlatformCard("GeeksforGeeks", "Connect", "assets/gfg.png", () {
-                  showDialog(context: context, builder: (_) => const GFGConnectDialog());
-                }),
-                _buildPlatformCard("LeetCode", "Connect", "assets/leetcode.png", () {
-                  showDialog(context: context, builder: (_) => const LeetCodeConnectDialog());
-                }),
+                _buildPlatformCard(
+                  "GitHub", 
+                  _getPlatformStatus('github'), 
+                  "assets/github.png", 
+                  platformData['github']?['username'] ?? '',
+                  () {
+                    showDialog(context: context, builder: (_) => const GitHubConnectDialog());
+                  }
+                ),
+                _buildPlatformCard(
+                  "LinkedIn", 
+                  _getPlatformStatus('linkedin'), 
+                  "assets/linkedin.png", 
+                  platformData['linkedin']?['username'] ?? '',
+                  () {
+                    showDialog(context: context, builder: (_) => const LinkedInConnectDialog());
+                  }
+                ),
+                _buildPlatformCard(
+                  "GeeksforGeeks", 
+                  _getPlatformStatus('gfg'), 
+                  "assets/gfg.png", 
+                  platformData['gfg']?['username'] ?? '',
+                  () {
+                    showDialog(context: context, builder: (_) => const GFGConnectDialog());
+                  }
+                ),
+                _buildPlatformCard(
+                  "LeetCode", 
+                  _getPlatformStatus('leetcode'), 
+                  "assets/leetcode.png", 
+                  platformData['leetcode']?['username'] ?? '',
+                  () {
+                    showDialog(context: context, builder: (_) => const LeetCodeConnectDialog());
+                  }
+                ),
               ],
             ),
             const SizedBox(height: 24),
@@ -253,7 +463,7 @@ class DashboardContent extends StatelessWidget {
     );
   }
 
-  Widget _buildPlatformCard(String title, String subtitle, String imagePath, VoidCallback onTap) {
+  Widget _buildPlatformCard(String title, String subtitle, String imagePath, String username, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Card(
@@ -263,7 +473,19 @@ class DashboardContent extends StatelessWidget {
           children: [
             Image.asset(imagePath, height: 50, width: 50),
             Text(title, style: const TextStyle(color: Colors.white, fontSize: 16)),
-            Text(subtitle, style: const TextStyle(color: Colors.white60, fontSize: 12)),
+            Text(subtitle, style: TextStyle(
+              color: subtitle == "Connected" ? Colors.greenAccent : Colors.white60,
+              fontSize: 12,
+            )),
+            if (username.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Text(
+                  username,
+                  style: const TextStyle(color: Colors.white70, fontSize: 10),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
           ],
         ),
       ),

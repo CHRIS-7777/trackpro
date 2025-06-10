@@ -51,6 +51,8 @@ class MyApp extends StatelessWidget {
         '/suggest': (context) => const RecommendPage(),
         '/add': (context) => const CreateProjectPage(),
         '/create-resume': (context) => const ResumeGeneratorPage(),
+       
+
       },
     );
   }

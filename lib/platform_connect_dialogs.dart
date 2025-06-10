@@ -4,7 +4,108 @@ import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-/// ---------------------- LinkedIn Dialog ----------------------
+// ==================== COMMON DIALOG THEME ====================
+
+class PlatformDialogTheme {
+  static AlertDialog buildDialog({
+    required BuildContext context,
+    required String title,
+    required Widget content,
+    required List<Widget> actions,
+    bool loading = false,
+  }) {
+    return AlertDialog(
+      backgroundColor: Colors.black,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: const BorderSide(color: Colors.greenAccent, width: 2),
+      ),
+      title: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 20,
+          color: Colors.greenAccent,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      content: content,
+      actions: actions,
+    );
+  }
+
+  static Widget buildTextField({
+    required TextEditingController controller,
+    required String label,
+    bool isRequired = true,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: TextFormField(
+        controller: controller,
+        style: const TextStyle(color: Colors.white),
+        decoration: InputDecoration(
+          labelText: label,
+          labelStyle: const TextStyle(color: Color.fromARGB(255, 203, 203, 203)),
+          filled: true,
+          fillColor: Colors.black,
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: Colors.greenAccent),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: Colors.greenAccent, width: 2),
+          ),
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: Colors.redAccent),
+          ),
+          focusedErrorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: Colors.redAccent),
+          ),
+        ),
+        validator: isRequired
+            ? (val) => val!.isEmpty ? 'Enter $label' : null
+            : null,
+      ),
+    );
+  }
+
+  static List<Widget> buildDialogActions({
+    required BuildContext context,
+    required VoidCallback onSubmit,
+    bool loading = false,
+  }) {
+    return [
+      TextButton(
+        onPressed: loading ? null : () => Navigator.pop(context),
+        child: const Text('Cancel', style: TextStyle(color: Colors.greenAccent)),
+      ),
+      ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.greenAccent,
+          foregroundColor: Colors.black,
+        ),
+        onPressed: loading ? null : onSubmit,
+        child: loading
+            ? const SizedBox(
+                width: 14,
+                height: 14,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Colors.black,
+                ),
+              )
+            : const Text('Connect'),
+      ),
+    ];
+  }
+}
+
+// ==================== LINKEDIN DIALOG ====================
+
+// ==================== UPDATED LINKEDIN DIALOG ====================
 
 class LinkedInConnectDialog extends StatefulWidget {
   const LinkedInConnectDialog({Key? key}) : super(key: key);
@@ -16,21 +117,17 @@ class LinkedInConnectDialog extends StatefulWidget {
 class _LinkedInConnectDialogState extends State<LinkedInConnectDialog> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _profileUrlController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
-
+  final TextEditingController _usernameController = TextEditingController();
   bool _loading = false;
   String? _error;
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
+    setState(() => _loading = true);
 
     final profileUrl = _profileUrlController.text.trim();
-    final email = _emailController.text.trim();
-
+    final username = _usernameController.text.trim();
+    
     try {
       final currentUser = FirebaseAuth.instance.currentUser;
       if (currentUser != null) {
@@ -40,8 +137,8 @@ class _LinkedInConnectDialogState extends State<LinkedInConnectDialog> {
             .collection('connected_platforms')
             .doc('linkedin')
             .set({
+          'username': username,  // Added username field
           'profile_url': profileUrl,
-          'email': email,
           'connected_at': FieldValue.serverTimestamp(),
         });
         Navigator.pop(context);
@@ -55,43 +152,43 @@ class _LinkedInConnectDialogState extends State<LinkedInConnectDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Connect LinkedIn', style: TextStyle(fontSize: 20)),
+    return PlatformDialogTheme.buildDialog(
+      context: context,
+      title: 'Connect LinkedIn',
+      loading: _loading,
       content: Form(
         key: _formKey,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextFormField(
+            PlatformDialogTheme.buildTextField(
+              controller: _usernameController,
+              label: 'LinkedIn Username',
+            ),
+            PlatformDialogTheme.buildTextField(
               controller: _profileUrlController,
-              decoration: const InputDecoration(labelText: 'Profile URL:'),
-              validator: (val) => val!.isEmpty ? 'Enter profile URL' : null,
+              label: 'LinkedIn Profile URL',
             ),
             if (_error != null)
               Padding(
                 padding: const EdgeInsets.only(top: 8),
-                child: Text(_error!, style: TextStyle(color: Colors.red)),
-              )
+                child: Text(
+                  _error!,
+                  style: const TextStyle(color: Colors.redAccent),
+                ),
+              ),
           ],
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: _loading ? null : () => Navigator.pop(context),
-          child: const Text('Cancel'),
-        ),
-        ElevatedButton(
-          onPressed: _loading ? null : _submit,
-          child: _loading
-              ? const SizedBox(width: 8, height: 14, child: CircularProgressIndicator(strokeWidth: 16))
-              : const Text('Connect'),
-        ),
-      ],
+      actions: PlatformDialogTheme.buildDialogActions(
+        context: context,
+        onSubmit: _submit,
+        loading: _loading,
+      ),
     );
   }
 }
-
-/// ---------------------- LeetCode Dialog ----------------------
+// ==================== LEETCODE DIALOG ====================
 
 class LeetCodeConnectDialog extends StatefulWidget {
   const LeetCodeConnectDialog({Key? key}) : super(key: key);
@@ -103,21 +200,17 @@ class LeetCodeConnectDialog extends StatefulWidget {
 class _LeetCodeConnectDialogState extends State<LeetCodeConnectDialog> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _usernameController = TextEditingController();
-
   bool _loading = false;
   String? _error;
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
+    setState(() => _loading = true);
 
     final username = _usernameController.text.trim();
-
     try {
-      final response = await http.get(Uri.parse("https://leetcode-stats-api.herokuapp.com/$username"));
+      final response = await http.get(
+          Uri.parse("https://leetcode-stats-api.herokuapp.com/$username"));
       if (response.statusCode != 200) throw Exception("LeetCode user not found");
 
       final data = json.decode(response.body);
@@ -139,7 +232,6 @@ class _LeetCodeConnectDialogState extends State<LeetCodeConnectDialog> {
           'ranking': data['ranking'] ?? 'N/A',
           'connected_at': FieldValue.serverTimestamp(),
         });
-
         Navigator.pop(context);
       }
     } catch (e) {
@@ -151,43 +243,40 @@ class _LeetCodeConnectDialogState extends State<LeetCodeConnectDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Connect LeetCode', style: TextStyle(fontSize: 20)),
+    return PlatformDialogTheme.buildDialog(
+      context: context,
+      title: 'Connect LeetCode',
+      loading: _loading,
       content: Form(
         key: _formKey,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextFormField(
+            PlatformDialogTheme.buildTextField(
               controller: _usernameController,
-              decoration: const InputDecoration(labelText: 'LeetCode Username:'),
-              validator: (val) => val!.isEmpty ? 'Enter username' : null,
+              label: 'LeetCode Username',
             ),
             if (_error != null)
               Padding(
                 padding: const EdgeInsets.only(top: 8),
-                child: Text(_error!, style: TextStyle(color: Colors.red)),
-              )
+                child: Text(
+                  _error!,
+                  style: const TextStyle(color: Colors.redAccent),
+                ),
+              ),
           ],
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: _loading ? null : () => Navigator.pop(context),
-          child: const Text('Cancel'),
-        ),
-        ElevatedButton(
-          onPressed: _loading ? null : _submit,
-          child: _loading
-              ? const SizedBox(width: 8, height: 14, child: CircularProgressIndicator(strokeWidth: 16))
-              : const Text('Connect'),
-        ),
-      ],
+      actions: PlatformDialogTheme.buildDialogActions(
+        context: context,
+        onSubmit: _submit,
+        loading: _loading,
+      ),
     );
   }
 }
 
-/// ---------------------- GFG Dialog ----------------------
+// ==================== GFG DIALOG ====================
 
 class GFGConnectDialog extends StatefulWidget {
   const GFGConnectDialog({Key? key}) : super(key: key);
@@ -199,23 +288,18 @@ class GFGConnectDialog extends StatefulWidget {
 class _GFGConnectDialogState extends State<GFGConnectDialog> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _usernameController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
-
   bool _loading = false;
   String? _error;
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
+    setState(() => _loading = true);
 
     final username = _usernameController.text.trim();
-    final email = _emailController.text.trim();
 
     try {
-      final response = await http.get(Uri.parse("https://geeks-for-geeks-api.vercel.app/$username"));
+      final response = await http.get(
+          Uri.parse("https://geeks-for-geeks-api.vercel.app/$username"));
       if (response.statusCode != 200) throw Exception("GFG user not found");
 
       final data = json.decode(response.body);
@@ -229,7 +313,6 @@ class _GFGConnectDialogState extends State<GFGConnectDialog> {
             .doc('gfg')
             .set({
           'username': username,
-          'email': email,
           'institute_rank': data['institute_rank'] ?? 'N/A',
           'total_score': data['overall_coding_score'] ?? 0,
           'problems_solved': data['problems_solved'] ?? 0,
@@ -248,48 +331,40 @@ class _GFGConnectDialogState extends State<GFGConnectDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Connect GFG', style: TextStyle(fontSize: 20)),
+    return PlatformDialogTheme.buildDialog(
+      context: context,
+      title: 'Connect GeeksforGeeks',
+      loading: _loading,
       content: Form(
         key: _formKey,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextFormField(
+            PlatformDialogTheme.buildTextField(
               controller: _usernameController,
-              decoration: const InputDecoration(labelText: 'GFG Username:'),
-              validator: (val) => val!.isEmpty ? 'Enter username' : null,
-            ),
-            TextFormField(
-              controller: _emailController,
-              decoration: const InputDecoration(labelText: 'Email:'),
-              validator: (val) => val!.isEmpty ? 'Enter email' : null,
+              label: 'GFG Username',
             ),
             if (_error != null)
               Padding(
                 padding: const EdgeInsets.only(top: 8),
-                child: Text(_error!, style: TextStyle(color: Colors.red)),
-              )
+                child: Text(
+                  _error!,
+                  style: const TextStyle(color: Colors.redAccent),
+                ),
+              ),
           ],
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: _loading ? null : () => Navigator.pop(context),
-          child: const Text('Cancel'),
-        ),
-        ElevatedButton(
-          onPressed: _loading ? null : _submit,
-          child: _loading
-              ? const SizedBox(width: 8, height: 14, child: CircularProgressIndicator(strokeWidth: 16))
-              : const Text('Connect'),
-        ),
-      ],
+      actions: PlatformDialogTheme.buildDialogActions(
+        context: context,
+        onSubmit: _submit,
+        loading: _loading,
+      ),
     );
   }
 }
 
-/// ---------------------- GitHub Dialog ----------------------
+// ==================== GITHUB DIALOG ====================
 
 class GitHubConnectDialog extends StatefulWidget {
   const GitHubConnectDialog({Key? key}) : super(key: key);
@@ -319,7 +394,8 @@ class _GitHubConnectDialogState extends State<GitHubConnectDialog> {
     final phone = _phoneController.text.trim();
 
     try {
-      final response = await http.get(Uri.parse("https://api.github.com/users/$username"));
+      final response = await http
+          .get(Uri.parse("https://api.github.com/users/$username"));
       if (response.statusCode != 200) throw Exception("GitHub user not found");
 
       final data = json.decode(response.body);
@@ -354,77 +430,43 @@ class _GitHubConnectDialogState extends State<GitHubConnectDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      backgroundColor: Colors.black,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-        side: const BorderSide(color: Colors.greenAccent, width: 2),
-      ),
-      title: const Text('Connect GitHub', style: TextStyle(fontSize: 20, color: Colors.greenAccent)),
+    return PlatformDialogTheme.buildDialog(
+      context: context,
+      title: 'Connect GitHub',
+      loading: _loading,
       content: Form(
         key: _formKey,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _buildTextField(_usernameController, 'Username:'),
-            _buildTextField(_emailController, 'Email:'),
-            _buildTextField(_phoneController, 'Phone Number:'),
+            PlatformDialogTheme.buildTextField(
+              controller: _usernameController,
+              label: 'GitHub Username',
+            ),
+            PlatformDialogTheme.buildTextField(
+              controller: _emailController,
+              label: 'Email',
+            ),
+            PlatformDialogTheme.buildTextField(
+              controller: _phoneController,
+              label: 'Phone Number',
+              isRequired: false,
+            ),
             if (_error != null)
               Padding(
                 padding: const EdgeInsets.only(top: 8),
-                child: Text(_error!, style: const TextStyle(color: Colors.redAccent)),
-              )
+                child: Text(
+                  _error!,
+                  style: const TextStyle(color: Colors.redAccent),
+                ),
+              ),
           ],
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: _loading ? null : () => Navigator.pop(context),
-          child: const Text('Cancel', style: TextStyle(color: Colors.greenAccent)),
-        ),
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.greenAccent,
-            foregroundColor: Colors.black,
-          ),
-          onPressed: _loading ? null : _submit,
-          child: _loading
-              ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black))
-              : const Text('Connect'),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTextField(TextEditingController controller, String label) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: TextFormField(
-        controller: controller,
-        style: const TextStyle(color: Colors.white),
-        decoration: InputDecoration(
-          labelText: label,
-          labelStyle: const TextStyle(color: Color.fromARGB(255, 203, 203, 203)),
-          filled: true,
-          fillColor: Colors.black,
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: const BorderSide(color: Colors.greenAccent),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: const BorderSide(color: Colors.greenAccent, width: 2),
-          ),
-          errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: const BorderSide(color: Colors.redAccent),
-          ),
-          focusedErrorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: const BorderSide(color: Colors.redAccent),
-          ),
-        ),
-        validator: (val) => val!.isEmpty ? 'Enter $label' : null,
+      actions: PlatformDialogTheme.buildDialogActions(
+        context: context,
+        onSubmit: _submit,
+        loading: _loading,
       ),
     );
   }
