@@ -42,26 +42,31 @@ class _PlatformStatsPageState extends State<PlatformStatsPage> {
     _loadPlatformData();
   }
 
-  Future<void> _loadPlatformData() async {
-    final user = _auth.currentUser;
-    if (user != null) {
-      final snapshot = await _firestore
-          .collection('users')
-          .doc(user.uid)
-          .collection('connected_platforms')
-          .get();
+Future<void> _loadPlatformData() async {
+  final user = _auth.currentUser;
+  if (user != null) {
+    final snapshot = await _firestore
+        .collection('users')
+        .doc(user.uid)
+        .collection('connected_platforms')
+        .get();
 
-      setState(() {
-        _platformData = {
-          for (var doc in snapshot.docs) doc.id: doc.data()
-        };
-        // Default to first available platform
-        if (_platformData.isNotEmpty) {
-          _selectedPlatform = _platformData.keys.first;
-        }
-      });
-    }
+    final platformMap = {
+      for (var doc in snapshot.docs) doc.id: doc.data()
+    };
+
+    setState(() {
+      _platformData = platformMap;
+
+      // 👇 Prioritize GitHub if connected
+      if (_platformData.containsKey('github')) {
+        _selectedPlatform = 'github';
+      } else if (_platformData.isNotEmpty) {
+        _selectedPlatform = _platformData.keys.first;
+      }
+    });
   }
+}
 
   Widget _buildPlatformStats() {
     if (!_platformData.containsKey(_selectedPlatform)) {
