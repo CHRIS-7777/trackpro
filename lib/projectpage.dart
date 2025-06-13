@@ -332,72 +332,153 @@ class _ProjectsPageState extends State<ProjectsPage> {
     }
   }
 
-  Widget _buildProjectCard({
-    required String title,
-    required String description,
-    required VoidCallback onDelete,
-    required VoidCallback onLearnMore,
-    required bool isLoading,
-  }) {
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-      color: Colors.grey[900],
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
-        side: BorderSide(color: Colors.greenAccent.withOpacity(0.5)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: const TextStyle(
-                color: Colors.greenAccent,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+Widget _buildProjectCard({
+  required String title,
+  required String description,
+  required VoidCallback onDelete,
+  required VoidCallback onLearnMore,
+  required bool isLoading,
+}) {
+  // Sample technology tags – you can replace this with dynamic data later
+  final List<String> techList = [
+    'Flutter',
+    'Dart',
+    'Firebase (for backend simulation)',
+    'Provider/Riverpod (state management)',
+    'HTTP requests',
+  ];
+
+  return Container(
+    margin: const EdgeInsets.symmetric(vertical: 10),
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: Colors.black.withOpacity(0.5),
+      borderRadius: BorderRadius.circular(16),
+      border: Border.all(color: Colors.greenAccent.withOpacity(0.4)),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // 🔹 Title with stacked lines
+        Text(
+          title.replaceAll(' ', ' '),
+          style: const TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Colors.tealAccent,
+            height: 1.1,
+          ),
+        ),
+        const SizedBox(height: 10),
+
+        // 🔹 Short project summary
+        Text(
+          description,
+          style: const TextStyle(
+            fontSize: 14,
+            color: Colors.white70,
+          ),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
+        const SizedBox(height: 14),
+
+        // 🔹 Technologies section
+        const Text(
+          'Technologies',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: techList.map((tech) {
+            return Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.white),
+                borderRadius: BorderRadius.circular(30),
               ),
+              child: Text(
+                tech,
+                style: const TextStyle(color: Colors.white, fontSize: 12),
+              ),
+            );
+          }).toList(),
+        ),
+
+        const SizedBox(height: 16),
+
+        // 🔹 Roadmap Section
+        const Text(
+          'Roadmap',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 15,
+          ),
+        ),
+        const SizedBox(height: 4),
+        const Text(
+          '## Flutter-Powered Smart Home Dashboard: Project Roadmap',
+          style: TextStyle(
+            color: Colors.white60,
+            fontSize: 13,
+          ),
+        ),
+        const SizedBox(height: 2),
+        GestureDetector(
+          onTap: onLearnMore,
+          child: const Text(
+            'View Roadmap Tracker',
+            style: TextStyle(
+              color: Colors.greenAccent,
+              fontSize: 13,
+              decoration: TextDecoration.underline,
             ),
-            const SizedBox(height: 8),
-            Text(
-              description,
-              style: const TextStyle(color: Colors.white70),
+          ),
+        ),
+
+        const SizedBox(height: 14),
+
+        // 🔹 Buttons
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            ElevatedButton(
+              onPressed: isLoading ? null : onLearnMore,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.transparent,
+                foregroundColor: Colors.greenAccent,
+                side: const BorderSide(color: Colors.greenAccent),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              child: isLoading
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        color: Colors.greenAccent,
+                        strokeWidth: 3,
+                      ),
+                    )
+                  : const Text("Generate Roadmap"),
             ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                ElevatedButton(
-                  onPressed: isLoading ? null : onLearnMore,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.greenAccent,
-                    foregroundColor: Colors.black,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: isLoading
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            color: Colors.black,
-                            strokeWidth: 3,
-                          ),
-                        )
-                      : const Text("Generate Roadmap"),
-                ),
-                const SizedBox(width: 10),
-                IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.redAccent),
-                  onPressed: isLoading ? null : onDelete,
-                ),
-              ],
+            IconButton(
+              icon: const Icon(Icons.delete, color: Colors.redAccent),
+              onPressed: isLoading ? null : onDelete,
             ),
           ],
         ),
-      ),
-    );
-  }
+      ],
+    ),
+  );
+}
+
+
 }

@@ -336,7 +336,7 @@ class RoadmapPage extends StatelessWidget {
           'Advanced Topics',
           style: TextStyle(
             color: Colors.greenAccent,
-            fontSize: 20,
+            fontSize: 20, 
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -347,7 +347,7 @@ class RoadmapPage extends StatelessWidget {
             color: Colors.grey[900],
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Column(
+          child: Column( 
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               ...advancedTopics.map((topic) => _buildBulletPoint(topic)),
