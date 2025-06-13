@@ -3,6 +3,7 @@ import 'package:flutter_gemini/flutter_gemini.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:ui';
+import 'roadmap_page.dart'; // Import the RoadmapPage
 
 class ExplorePage extends StatefulWidget {
   const ExplorePage({super.key});
@@ -143,10 +144,22 @@ class _ExplorePageState extends State<ExplorePage> with SingleTickerProviderStat
           .map((line) => line.trim())
           .toList();
 
-      setState(() {
-        _generatedRoadmap = content;
-        _roadmapSteps = steps;
-      });
+      // Navigate to RoadmapPage with the generated content
+      if (steps.isNotEmpty) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => RoadmapPage(
+              title: tech,
+              content: steps.join('\n'),
+            ),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to parse roadmap steps')),
+        );
+      }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to generate roadmap: $e')),
@@ -374,129 +387,11 @@ class _ExplorePageState extends State<ExplorePage> with SingleTickerProviderStat
           ),
           const SizedBox(height: 24),
           
-          // Roadmap Display
+          // Loading indicator
           if (_roadmapLoading)
-            const Center(child: CircularProgressIndicator(color: Colors.greenAccent))
-          else if (_roadmapSteps.isNotEmpty)
-            _buildRoadmapVisualization()
-          else if (_generatedRoadmap != null)
-            Text(
-              _generatedRoadmap!,
-              style: const TextStyle(color: Colors.white70),
-            ),
+            const Center(child: CircularProgressIndicator(color: Colors.greenAccent)),
         ],
       ),
-    );
-  }
-
-  Widget _buildRoadmapVisualization() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-          decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.3),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.greenAccent),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.greenAccent.withOpacity(0.1),
-                blurRadius: 15,
-                spreadRadius: 2,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: const Text(
-            'Your Learning Path Flow',
-            style: TextStyle(
-              color: Colors.greenAccent,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-        const SizedBox(height: 16),
-        Column(
-          children: _roadmapSteps.asMap().entries.map((entry) {
-            final index = entry.key;
-            final step = entry.value;
-            return Column(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.4),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.greenAccent.withOpacity(0.7), width: 2.5),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.5),
-                        blurRadius: 10,
-                        spreadRadius: 1,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        width: 30,
-                        height: 30,
-                        decoration: BoxDecoration(
-                          color: Colors.greenAccent.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(18),
-                          border: Border.all(color: Colors.greenAccent),
-                        ),
-                        child: Center(
-                          child: Text(
-                            '${index + 1}',
-                            style: const TextStyle(
-                              color: Colors.greenAccent,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Text(
-                          step,
-                          style: const TextStyle(
-                            color: Color.fromARGB(255, 255, 255, 255),
-                            fontSize: 15,
-                            height: 1.5,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (index != _roadmapSteps.length - 1)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    child: Column(
-                      children: [
-                        Container(
-                          height: 20,
-                          width: 2,
-                          color: Colors.greenAccent.withOpacity(0.5),
-                        ),
-                        Icon(
-                          Icons.arrow_downward,
-                          color: Colors.greenAccent.withOpacity(0.8),
-                          size: 25,
-                        ),
-                      ],
-                    ),
-                  ),
-              ],
-            );
-          }).toList(),
-        ),
-      ],
     );
   }
 

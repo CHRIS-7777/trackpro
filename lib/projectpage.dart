@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gemini/flutter_gemini.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_generative_ai/google_generative_ai.dart';
-import 'package:google_generative_ai/google_generative_ai.dart';
-
+import 'roadmap_page.dart';
 
 class ProjectsPage extends StatefulWidget {
   const ProjectsPage({super.key});
@@ -16,6 +15,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
   final user = FirebaseAuth.instance.currentUser;
   int selectedIndex = 0;
   int _currentIndex = 0;
+  final Map<String, bool> _loadingStates = {};
 
   void _onTabTapped(int index) {
     setState(() {
@@ -28,52 +28,45 @@ class _ProjectsPageState extends State<ProjectsPage> {
     }
   }
 
-  Future<void> showRoadmapDialog(String title) async {
-    showDialog(
-      context: context,
-      builder: (context) => const Center(child: CircularProgressIndicator()),
-    );
-
+  Future<void> showRoadmapDialog(String title, String docId) async {
+    if (!mounted) return;
+    
+    setState(() => _loadingStates[docId] = true);
+    
     try {
-         final model = GenerativeModel(
-      model: 'gemini-pro',
-      apiKey: 'AIzaSyDYQqol4UPKrBujeKUfWxMMNoscZzfGqiM',
-    );
-      final prompt = "Generate a detailed roadmap and learning materials for the project titled: $title.";
-      final content = [Content.text(prompt)];
-      final response = await model.generateContent(content);
+      final result = await Gemini.instance.text(
+        "Generate a detailed roadmap for learning about: $title\n"
+        "Include:\n"
+        "1. Key milestones\n"
+        "2. Recommended resources\n"
+        "3. Estimated time for each step\n"
+        "4. Prerequisites\n\n"
+        "Format as a numbered list with clear headings."
+      );
 
       if (!mounted) return;
 
-      Navigator.pop(context);
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text("Roadmap: $title"),
-          content: SingleChildScrollView(child: Text(response.text ?? 'No content generated.')),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("Close"),
-            ),
-          ],
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => RoadmapPage(
+            title: title,
+            content: result?.output ?? "No content generated",
+          ),
         ),
       );
     } catch (e) {
-      Navigator.pop(context);
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text("Error"),
-          content: Text("Failed to load roadmap: $e"),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("OK"),
-            ),
-          ],
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to generate roadmap: ${e.toString()}'),
+          duration: const Duration(seconds: 3),
         ),
       );
+    } finally {
+      if (mounted) {
+        setState(() => _loadingStates.remove(docId));
+      }
     }
   }
 
@@ -178,9 +171,11 @@ class _ProjectsPageState extends State<ProjectsPage> {
 
   Widget _buildBookmarkedProjects() {
     if (user == null) {
-      return const Text(
-        "Please log in to view bookmarked projects.",
-        style: TextStyle(color: Colors.white54),
+      return const Center(
+        child: Text(
+          "Please log in to view bookmarked projects",
+          style: TextStyle(color: Colors.white54),
+        ),
       );
     }
 
@@ -193,9 +188,11 @@ class _ProjectsPageState extends State<ProjectsPage> {
           .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
-          return Text(
-            "Error: ${snapshot.error}",
-            style: const TextStyle(color: Colors.red),
+          return Center(
+            child: Text(
+              "Error: ${snapshot.error}",
+              style: const TextStyle(color: Colors.red),
+            ),
           );
         }
 
@@ -207,184 +204,199 @@ class _ProjectsPageState extends State<ProjectsPage> {
 
         final docs = snapshot.data?.docs ?? [];
         if (docs.isEmpty) {
-          return const Text(
-            "No bookmarked projects yet.",
-            style: TextStyle(color: Colors.white54),
+          return const Center(
+            child: Text(
+              "No bookmarked projects yet",
+              style: TextStyle(color: Colors.white54),
+            ),
           );
         }
 
-        return ListView(
+        return ListView.builder(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          children: docs.map((doc) {
+          itemCount: docs.length,
+          itemBuilder: (context, index) {
+            final doc = docs[index];
             final data = doc.data() as Map<String, dynamic>;
             return _buildProjectCard(
-              title: data['title'],
-              description: data['description'],
-              onDelete: () async {
-                final confirmed = await _confirmDelete();
-                if (confirmed) {
-                  await doc.reference.delete();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Project removed")),
-                  );
-                }
-              },
-              onLearnMore: () => showRoadmapDialog(data['title'] ?? 'Project'),
+              title: data['title'] ?? 'Untitled Project',
+              description: data['description'] ?? 'No description',
+              onDelete: () => _confirmDelete(doc.reference),
+              onLearnMore: () => showRoadmapDialog(data['title'] ?? 'Project', doc.id),
+              isLoading: _loadingStates.containsKey(doc.id),
             );
-          }).toList(),
+          },
         );
       },
     );
   }
 
   Widget _buildOwnProjects() {
+    if (user == null) {
+      return const Center(
+        child: Text(
+          "Please log in to view your projects",
+          style: TextStyle(color: Colors.white54),
+        ),
+      );
+    }
+
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
           .collection('users')
-          .doc(user?.uid)
+          .doc(user!.uid)
           .collection('my_projects')
           .orderBy('createdAt', descending: true)
           .snapshots(),
       builder: (context, snapshot) {
-        if (!snapshot.hasData) {
+        if (snapshot.hasError) {
+          return Center(
+            child: Text(
+              "Error: ${snapshot.error}",
+              style: const TextStyle(color: Colors.red),
+            ),
+          );
+        }
+
+        if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(
             child: CircularProgressIndicator(color: Colors.greenAccent),
           );
         }
 
-        final docs = snapshot.data!.docs;
+        final docs = snapshot.data?.docs ?? [];
         if (docs.isEmpty) {
-          return const Text(
-            "No own projects yet.",
-            style: TextStyle(color: Colors.white54),
+          return const Center(
+            child: Text(
+              "No projects created yet",
+              style: TextStyle(color: Colors.white54),
+            ),
           );
         }
 
-        return ListView(
+        return ListView.builder(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          children: docs.map((doc) {
+          itemCount: docs.length,
+          itemBuilder: (context, index) {
+            final doc = docs[index];
             final data = doc.data() as Map<String, dynamic>;
             return _buildProjectCard(
-              title: data['title'],
-              description: data['description'],
-              onDelete: () async {
-                final confirmed = await _confirmDelete();
-                if (confirmed) {
-                  await doc.reference.delete();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Own project deleted")),
-                  );
-                }
-              },
-              onLearnMore: () => showRoadmapDialog(data['title'] ?? 'Project'),
+              title: data['title'] ?? 'Untitled Project',
+              description: data['description'] ?? 'No description',
+              onDelete: () => _confirmDelete(doc.reference),
+              onLearnMore: () => showRoadmapDialog(data['title'] ?? 'Project', doc.id),
+              isLoading: _loadingStates.containsKey(doc.id),
             );
-          }).toList(),
+          },
         );
       },
     );
   }
 
-  Future<bool> _confirmDelete() async {
-    return await showDialog<bool>(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text("Confirm Deletion"),
-            content:
-                const Text("Are you sure you want to delete this project?"),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: const Text("Cancel"),
-              ),
-              TextButton(
-                onPressed: () => Navigator.pop(context, true),
-                child: const Text("Delete"),
-              ),
-            ],
+  Future<void> _confirmDelete(DocumentReference docRef) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Confirm Delete"),
+        content: const Text("Are you sure you want to delete this project?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text("Cancel"),
           ),
-        ) ??
-        false;
-  }
-
-  Widget _buildProjectCard({
-    required String? title,
-    required String? description,
-    required VoidCallback onDelete,
-    required VoidCallback onLearnMore,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.grey[900],
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.3),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text("Delete", style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title ?? 'Untitled Project',
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.greenAccent,
+    );
+
+    if (confirmed == true && mounted) {
+      try {
+        await docRef.delete();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Project deleted"),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Failed to delete: ${e.toString()}"),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
+  Widget _buildProjectCard({
+    required String title,
+    required String description,
+    required VoidCallback onDelete,
+    required VoidCallback onLearnMore,
+    required bool isLoading,
+  }) {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      color: Colors.grey[900],
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15),
+        side: BorderSide(color: Colors.greenAccent.withOpacity(0.5)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: const TextStyle(
+                color: Colors.greenAccent,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            description ?? 'No description provided',
-            style: const TextStyle(
-              fontSize: 14,
-              color: Color.fromARGB(255, 255, 255, 255),
+            const SizedBox(height: 8),
+            Text(
+              description,
+              style: const TextStyle(color: Colors.white70),
             ),
-          ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            children: const [
-              Chip(
-                label: Text("AI"),
-                labelStyle: TextStyle(color: Colors.greenAccent),
-                backgroundColor: Color.fromARGB(59, 105, 240, 175),
-              ),
-              Chip(
-                label: Text("Flutter"),
-                labelStyle: TextStyle(color: Colors.greenAccent),
-                backgroundColor: Color.fromARGB(59, 105, 240, 175),
-              ),
-              Chip(
-                label: Text("Dialogflow"),
-                labelStyle: TextStyle(color: Colors.greenAccent),
-                backgroundColor: Color.fromARGB(59, 105, 240, 175),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              ElevatedButton(
-                onPressed: onLearnMore,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.greenAccent,
-                  foregroundColor: Colors.black,
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                ElevatedButton(
+                  onPressed: isLoading ? null : onLearnMore,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.greenAccent,
+                    foregroundColor: Colors.black,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: isLoading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.black,
+                            strokeWidth: 3,
+                          ),
+                        )
+                      : const Text("Generate Roadmap"),
                 ),
-                child: const Text("Learn More"),
-              ),
-              IconButton(
-                icon: const Icon(Icons.delete, color: Colors.redAccent),
-                onPressed: onDelete,
-              ),
-            ],
-          )
-        ],
+                const SizedBox(width: 10),
+                IconButton(
+                  icon: const Icon(Icons.delete, color: Colors.redAccent),
+                  onPressed: isLoading ? null : onDelete,
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

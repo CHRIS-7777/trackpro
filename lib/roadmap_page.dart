@@ -1,354 +1,381 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_generative_ai/google_generative_ai.dart';
-import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:url_launcher/url_launcher.dart';
 
-class ProjectsPage extends StatefulWidget {
-  const ProjectsPage({super.key});
+class RoadmapPage extends StatelessWidget {
+  final String title;
+  final String content;
 
-  @override
-  State<ProjectsPage> createState() => _ProjectsPageState();
-}
+  RoadmapPage({
+    super.key,
+    required this.title,
+    required this.content,
+  });
 
-class _ProjectsPageState extends State<ProjectsPage> {
-  final user = FirebaseAuth.instance.currentUser;
-  int selectedIndex = 0;
-  int _currentIndex = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    Gemini.init(apiKey: 'AIzaSyDYQqol4UPKrBujeKUfWxMMNoscZzfGqiM');
-  }
-
-  void _onTabTapped(int index) {
-    setState(() {
-      _currentIndex = index;
-    });
-
-    final routes = ['/projects', '/explore', '/add', '/suggest', '/resume'];
-    if (index < routes.length) {
-      Navigator.pushNamed(context, routes[index]);
-    }
-  }
+  final Map<int, String> weekPdfLinks = {
+    1: 'https://example.com/react-week1.pdf',
+    2: 'https://example.com/react-week2.pdf',
+    3: 'https://example.com/react-week3.pdf',
+    4: 'https://example.com/react-week4.pdf',
+    5: 'https://example.com/react-week5.pdf',
+    6: 'https://example.com/react-week6.pdf',
+    7: 'https://example.com/react-week7.pdf',
+    8: 'https://example.com/react-week8.pdf',
+    9: 'https://example.com/react-week9.pdf',
+    10: 'https://example.com/react-week10.pdf',
+  };
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      backgroundColor: Colors.black,
       appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 0, 0, 0),
+        backgroundColor: Colors.black,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.greenAccent),
-          onPressed: () => Navigator.pushNamed(context, '/dash'),
+          onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          '🎯 Projects',
-          style: TextStyle(
+        title: Text(
+          '🚀 ${title.replaceAll('**', '')} Roadmap', // Remove double asterisks
+          style: const TextStyle(
             color: Colors.greenAccent,
-            fontSize: 22,
+            fontSize: 20, // Slightly smaller for better fit
             fontWeight: FontWeight.bold,
           ),
         ),
         centerTitle: true,
       ),
-      extendBodyBehindAppBar: true,
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Colors.black, Color.fromARGB(255, 0, 0, 0)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              Container(
-                margin: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.5),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  children: [
-                    _buildToggleButton("Bookmarked", 0),
-                    _buildToggleButton("My Projects", 1),
-                  ],
-                ),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          return SingleChildScrollView(
+            padding: EdgeInsets.all(constraints.maxWidth * 0.04), // Responsive padding
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: constraints.maxHeight,
               ),
-              Expanded(
-                child: selectedIndex == 0
-                    ? _buildBookmarkedProjects()
-                    : _buildOwnProjects(),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildHeaderSection(constraints),
+                  const SizedBox(height: 24),
+                  _buildPrerequisitesSection(),
+                  const SizedBox(height: 24),
+                  _buildWeeklyPlanSection(),
+                  const SizedBox(height: 24),
+                  _buildAdvancedTopicsSection(),
+                ],
               ),
-            ],
-          ),
-        ),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        backgroundColor: const Color.fromARGB(255, 0, 0, 0),
-        elevation: 0,
-        selectedItemColor: Colors.greenAccent,
-        unselectedItemColor: Colors.white,
-        showUnselectedLabels: false,
-        type: BottomNavigationBarType.fixed,
-        onTap: _onTabTapped,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.folder), label: 'Projects'),
-          BottomNavigationBarItem(icon: Icon(Icons.explore), label: 'Explore'),
-          BottomNavigationBarItem(icon: Icon(Icons.add), label: 'Add'),
-          BottomNavigationBarItem(icon: Icon(Icons.recommend), label: 'Suggest'),
-          BottomNavigationBarItem(icon: Icon(Icons.document_scanner), label: 'Resume'),
-        ],
+            ),
+          );
+        },
       ),
     );
   }
 
-  Widget _buildToggleButton(String title, int index) {
-    bool isSelected = selectedIndex == index;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => setState(() => selectedIndex = index),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12),
+  Widget _buildHeaderSection(BoxConstraints constraints) {
+    return Container(
+      width: constraints.maxWidth,
+      padding: EdgeInsets.all(constraints.maxWidth * 0.04),
+      decoration: BoxDecoration(
+        color: Colors.grey[900],
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        "This roadmap outlines a 10-week plan to achieve an intermediate understanding of ${title.replaceAll('**', '')}. "
+        "It emphasizes hands-on practice and focuses on building a solid foundation before exploring advanced concepts.",
+        style: TextStyle(
+          color: Colors.white70, 
+          fontSize: constraints.maxWidth * 0.04, // Responsive font size
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPrerequisitesSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Prerequisites',
+          style: TextStyle(
+            color: Colors.greenAccent,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: isSelected ? Colors.greenAccent : Colors.transparent,
+            color: Colors.grey[900],
             borderRadius: BorderRadius.circular(12),
           ),
-          alignment: Alignment.center,
-          child: Text(
-            title,
-            style: TextStyle(
-              color: isSelected ? Colors.black : Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBookmarkedProjects() {
-    if (user == null) {
-      return const Text("Please log in to view bookmarked projects.", style: TextStyle(color: Colors.white54));
-    }
-
-    return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection('users')
-          .doc(user!.uid)
-          .collection('saved_projects')
-          .orderBy('createdAt', descending: true)
-          .snapshots(),
-      builder: (context, snapshot) {
-        if (snapshot.hasError) {
-          return Text("Error: \${snapshot.error}", style: const TextStyle(color: Colors.red));
-        }
-
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator(color: Colors.greenAccent));
-        }
-
-        final docs = snapshot.data?.docs ?? [];
-        if (docs.isEmpty) {
-          return const Text("No bookmarked projects yet.", style: TextStyle(color: Colors.white54));
-        }
-
-        return ListView(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          children: docs.map((doc) {
-            final data = doc.data() as Map<String, dynamic>;
-            return _buildProjectCard(
-              title: data['title'],
-              description: data['description'],
-              onDelete: () async {
-                final confirmed = await _confirmDelete();
-                if (confirmed) {
-                  await doc.reference.delete();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Project removed")),
-                  );
-                }
-              },
-            );
-          }).toList(),
-        );
-      },
-    );
-  }
-
-  Widget _buildOwnProjects() {
-    return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection('users')
-          .doc(user?.uid)
-          .collection('my_projects')
-          .orderBy('createdAt', descending: true)
-          .snapshots(),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return const Center(child: CircularProgressIndicator(color: Colors.greenAccent));
-        }
-
-        final docs = snapshot.data!.docs;
-        if (docs.isEmpty) {
-          return const Text("No own projects yet.", style: TextStyle(color: Colors.white54));
-        }
-
-        return ListView(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          children: docs.map((doc) {
-            final data = doc.data() as Map<String, dynamic>;
-            return _buildProjectCard(
-              title: data['title'],
-              description: data['description'],
-              onDelete: () async {
-                final confirmed = await _confirmDelete();
-                if (confirmed) {
-                  await doc.reference.delete();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Own project deleted")),
-                  );
-                }
-              },
-            );
-          }).toList(),
-        );
-      },
-    );
-  }
-
-  Future<bool> _confirmDelete() async {
-    return await showDialog<bool>(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text("Confirm Deletion"),
-            content: const Text("Are you sure you want to delete this project?"),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: const Text("Cancel"),
-              ),
-              TextButton(
-                onPressed: () => Navigator.pop(context, true),
-                child: const Text("Delete"),
-              ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildBulletPoint('Basic HTML, CSS, and JavaScript knowledge'),
+              _buildBulletPoint('Familiarity with ES6+ features'),
+              _buildBulletPoint('Node.js and npm/yarn installed'),
             ],
           ),
-        ) ??
-        false;
+        ),
+      ],
+    );
   }
 
-  Widget _buildProjectCard({
-    required String? title,
-    required String? description,
-    required VoidCallback onDelete,
-  }) {
+  Widget _buildWeeklyPlanSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Weekly Plan',
+          style: TextStyle(
+            color: Colors.greenAccent,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 8),
+        for (int weekNumber = 1; weekNumber <= 10; weekNumber++)
+          _buildWeekContainer(weekNumber),
+      ],
+    );
+  }
+
+  Widget _buildWeekContainer(int weekNumber) {
+    final weekTitles = [
+      'Getting started with React fundamentals',
+      'Understanding components and props',
+      'State management and lifecycle methods',
+      'Working with lists and conditional rendering',
+      'Forms and handling user input',
+      'Introduction to React Router',
+      'Introduction to state management (Context API or Redux)',
+      'Advanced React Hooks and Testing',
+      'Consolidation and Project Refinement',
+      'Final Project and Advanced Concepts'
+    ];
+
+    final weekResources = [
+      [
+        {'name': 'React - The Complete Guide', 'url': 'https://example.com/react-complete-guide', 'type': 'course'},
+        {'name': 'React Official Documentation', 'url': 'https://reactjs.org/docs', 'type': 'documentation'},
+      ],
+      [
+        {'name': 'Modern React with Redux', 'url': 'https://example.com/modern-react', 'type': 'course'},
+        {'name': 'React Component API', 'url': 'https://reactjs.org/docs/react-component.html', 'type': 'documentation'},
+      ],
+      [
+        {'name': 'React for Beginners', 'url': 'https://example.com/react-beginners', 'type': 'course'},
+        {'name': 'React State and Lifecycle', 'url': 'https://reactjs.org/docs/state-and-lifecycle.html', 'type': 'documentation'},
+      ],
+    ];
+
+    final weekProjects = [
+      'Simple Counter App: Build a counter app with increment and decrement buttons.',
+      'Simple To-Do List: Create a to-do list app with add, delete, and toggle functionalities.',
+      'Simple Calculator: Build a basic calculator app with button inputs and display.',
+      'Product List with Filtering: Create a product list with a search filter.',
+      'Simple User Registration Form: Build a form to collect user data.',
+      'Multi-Page Application: Create a simple multi-page app using React Router.',
+      'E-commerce Product Cart: Build a shopping cart with global state.',
+      'Refactor previous project with testing: Implement unit tests.',
+      'Portfolio Website: Build a portfolio showcasing your skills.',
+      'Personal Project: Choose a project of personal interest.',
+    ];
+
+    final weekMilestones = [
+      [
+        'Understand JSX syntax',
+        'Create a basic React component',
+        'Render data to the DOM',
+      ],
+      [
+        'Create reusable components',
+        'Pass data between components using props',
+        'Handle events in components',
+      ],
+      [
+        'Manage component state effectively',
+        'Understand component lifecycle methods',
+        'Use useState and useEffect hooks',
+      ],
+    ];
+
+    final safeWeekIndex = weekNumber - 1;
+    final hasResources = weekResources.length > safeWeekIndex;
+    final hasMilestones = weekMilestones.length > safeWeekIndex;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.grey[900],
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.3),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.greenAccent.withOpacity(0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            title ?? 'Untitled Project',
+            'Week $weekNumber: ${weekTitles[safeWeekIndex]}',
             style: const TextStyle(
+              color: Colors.greenAccent,
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Colors.greenAccent,
+            ),
+          ),
+          const SizedBox(height: 12),
+          
+          // Resources Section
+          const Text(
+            'Resources',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          if (hasResources)
+            ...weekResources[safeWeekIndex].map((resource) => Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: Row(
+                children: [
+                  const Text('• ', style: TextStyle(color: Colors.white70)),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => _launchUrl(resource['url']!),
+                      child: Text(
+                        '${resource['name']} (${resource['type']})',
+                        style: const TextStyle(
+                          color: Colors.lightBlue,
+                          decoration: TextDecoration.underline,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            )),
+          const SizedBox(height: 8),
+          
+          // PDF Download Button
+          if (weekPdfLinks.containsKey(weekNumber))
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () => _launchUrl(weekPdfLinks[weekNumber]!),
+                icon: const Icon(Icons.download, size: 18),
+                label: const Text('Download Study Materials'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.greenAccent.withOpacity(0.2),
+                  foregroundColor: Colors.greenAccent,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                ),
+              ),
+            ),
+          const SizedBox(height: 12),
+          
+          // Projects Section
+          const Text(
+            'Projects',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            description ?? 'No description provided',
-            style: const TextStyle(fontSize: 14, color: Colors.white),
+            weekProjects[safeWeekIndex].replaceAll('**', ''), // Remove double asterisks
+            style: const TextStyle(color: Colors.white70),
           ),
           const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            children: const [
-              Chip(label: Text("AI"), labelStyle: TextStyle(color: Colors.greenAccent), backgroundColor: Color.fromARGB(59, 105, 240, 175)),
-              Chip(label: Text("Flutter"), labelStyle: TextStyle(color: Colors.greenAccent), backgroundColor: Color.fromARGB(59, 105, 240, 175)),
-              Chip(label: Text("Dialogflow"), labelStyle: TextStyle(color: Colors.greenAccent), backgroundColor: Color.fromARGB(59, 105, 240, 175)),
-            ],
+          
+          // Milestones Section
+          const Text(
+            'Milestones',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
           ),
-          const SizedBox(height: 10),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              TextButton(
-                style: TextButton.styleFrom(
-                  backgroundColor: Colors.greenAccent,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                ),
-                onPressed: () async {
-                  showDialog(
-                    context: context,
-                    builder: (context) {
-                      return FutureBuilder<String>(
-                        future: fetchRoadmapFromGemini(title ?? 'Project'),
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState == ConnectionState.waiting) {
-                            return const AlertDialog(
-                              title: Text("Generating Roadmap..."),
-                              content: SizedBox(height: 80, child: Center(child: CircularProgressIndicator())),
-                            );
-                          } else {
-                            return AlertDialog(
-                              title: Text("Roadmap for '$title'"),
-                              content: SingleChildScrollView(
-                                child: MarkdownBody(data: snapshot.data ?? "No data available"),
-                              ),
-                              actions: [
-                                TextButton(
-                                  child: const Text("Close"),
-                                  onPressed: () => Navigator.pop(context),
-                                )
-                              ],
-                            );
-                          }
-                        },
-                      );
-                    },
-                  );
-                },
-                child: const Text("Learn More", style: TextStyle(color: Colors.black)),
+          const SizedBox(height: 8),
+          if (hasMilestones)
+            ...weekMilestones[safeWeekIndex].map((milestone) => Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: Text(
+                '• ${milestone.replaceAll('**', '')}', // Remove double asterisks
+                style: const TextStyle(color: Colors.white70),
               ),
-              IconButton(
-                icon: const Icon(Icons.delete, color: Colors.redAccent),
-                onPressed: onDelete,
-              ),
-            ],
-          ),
+            )),
         ],
       ),
     );
   }
 
-  Future<String> fetchRoadmapFromGemini(String title) async {
-    try {
-      final model = Gemini.instance.model('gemini-pro');
-      final response = await model.generateContent([
-        Content.text("Give me a full learning roadmap and online study materials for the project: $title")
-      ]);
-      return response.text ?? "No roadmap generated.";
-    } catch (e) {
-      return "❌ Failed to load roadmap: $e";
+  Widget _buildAdvancedTopicsSection() {
+    final advancedTopics = [
+      'Advanced Redux techniques',
+      'Server-Side Rendering (SSR)',
+      'Static Site Generation (SSG)',
+      'Testing libraries (Jest, React Testing Library)',
+      'Performance Optimization',
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Advanced Topics',
+          style: TextStyle(
+            color: Colors.greenAccent,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.grey[900],
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ...advancedTopics.map((topic) => _buildBulletPoint(topic)),
+              const SizedBox(height: 12),
+              const Text(
+                'After completing the 10-week roadmap, explore these advanced topics to deepen your expertise.',
+                style: TextStyle(color: Colors.white70, fontStyle: FontStyle.italic),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBulletPoint(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Text(
+        '• ${text.replaceAll('**', '')}', // Remove double asterisks
+        style: const TextStyle(color: Colors.white70),
+      ),
+    );
+  }
+
+  Future<void> _launchUrl(String url) async {
+    if (await canLaunchUrl(Uri.parse(url))) {
+      await launchUrl(Uri.parse(url));
     }
   }
-} 
+}
