@@ -43,46 +43,51 @@ class _ExplorePageState extends State<ExplorePage> with SingleTickerProviderStat
       Navigator.pushNamed(context, routes[index]);
     }
   }
+// ... (previous code remains the same until the _generateProjects method)
 
-  Future<void> _generateProjects() async {
-    final prompt = _promptController.text.trim();
-    if (prompt.isEmpty) return;
+Future<void> _generateProjects() async {
+  final prompt = _promptController.text.trim();
+  if (prompt.isEmpty) return;
 
-    setState(() {
-      _loading = true;
-      _generatedProjects.clear();
-    });
+  setState(() {
+    _loading = true;
+    _generatedProjects.clear();
+  });
 
-    try {
-      final result = await Gemini.instance.text(
-        "Suggest 5 popular projects related to the topic: $prompt",
-      );
+  try {
+    final result = await Gemini.instance.text(
+      "Suggest 5 popular projects related to the topic: $prompt",
+    );
 
-      final content = result?.output ?? '';
-      final lines = content
-          .split('\n')
-          .where((line) => line.trim().isNotEmpty)
-          .toList();
-
-      setState(() {
-        _generatedProjects.addAll(lines.map((line) {
-          final parts = line.contains(':') ? line.split(':') : [line, "No description provided"];
-          return {
-            'title': parts[0].trim(),
-            'description': parts.sublist(1).join(':').trim(),
-          };
-        }).toList());
-      });
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to generate ideas: $e')),
-      );
-    }
+    final content = result?.output ?? '';
+    final lines = content
+        .split('\n')
+        .where((line) => line.trim().isNotEmpty)
+        .toList();
 
     setState(() {
-      _loading = false;
+      _generatedProjects.addAll(lines.map((line) {
+        // Remove double asterisks from the line
+        final cleanLine = line.replaceAll('**', '');
+        final parts = cleanLine.contains(':') ? cleanLine.split(':') : [cleanLine, "No description provided"];
+        return {
+          'title': parts[0].trim(),
+          'description': parts.sublist(1).join(':').trim(),
+        };
+      }).toList());
     });
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Failed to generate ideas: $e')),
+    );
   }
+
+  setState(() {
+    _loading = false;
+  });
+}
+
+// ... (rest of the code remains the same)
 
   Future<void> _bookmarkProject(Map<String, String> project) async {
     try {
