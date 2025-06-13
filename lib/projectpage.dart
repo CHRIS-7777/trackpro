@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_generative_ai/google_generative_ai.dart';
+import 'package:google_generative_ai/google_generative_ai.dart';
+
 
 class ProjectsPage extends StatefulWidget {
   const ProjectsPage({super.key});
@@ -25,6 +28,55 @@ class _ProjectsPageState extends State<ProjectsPage> {
     }
   }
 
+  Future<void> showRoadmapDialog(String title) async {
+    showDialog(
+      context: context,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+         final model = GenerativeModel(
+      model: 'gemini-pro',
+      apiKey: 'AIzaSyDYQqol4UPKrBujeKUfWxMMNoscZzfGqiM',
+    );
+      final prompt = "Generate a detailed roadmap and learning materials for the project titled: $title.";
+      final content = [Content.text(prompt)];
+      final response = await model.generateContent(content);
+
+      if (!mounted) return;
+
+      Navigator.pop(context);
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text("Roadmap: $title"),
+          content: SingleChildScrollView(child: Text(response.text ?? 'No content generated.')),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Close"),
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      Navigator.pop(context);
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text("Error"),
+          content: Text("Failed to load roadmap: $e"),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("OK"),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -36,7 +88,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
           icon: const Icon(Icons.arrow_back, color: Colors.greenAccent),
           onPressed: () => Navigator.pushNamed(context, '/dash'),
         ),
-       title: Text(
+        title: const Text(
           '🎯 Projects',
           style: TextStyle(
             color: Colors.greenAccent,
@@ -49,12 +101,12 @@ class _ProjectsPageState extends State<ProjectsPage> {
       extendBodyBehindAppBar: true,
       body: Container(
         decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Colors.black, Color.fromARGB(255, 0, 0, 0)],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
+          gradient: LinearGradient(
+            colors: [Colors.black, Color.fromARGB(255, 0, 0, 0)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
         ),
-      ),
         child: SafeArea(
           child: Column(
             children: [
@@ -177,6 +229,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
                   );
                 }
               },
+              onLearnMore: () => showRoadmapDialog(data['title'] ?? 'Project'),
             );
           }).toList(),
         );
@@ -223,6 +276,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
                   );
                 }
               },
+              onLearnMore: () => showRoadmapDialog(data['title'] ?? 'Project'),
             );
           }).toList(),
         );
@@ -252,77 +306,86 @@ class _ProjectsPageState extends State<ProjectsPage> {
         false;
   }
 
- Widget _buildProjectCard({
-  required String? title,
-  required String? description,
-  required VoidCallback onDelete,
-}) {
-  return Container(
-    margin: const EdgeInsets.only(bottom: 16),
-    padding: const EdgeInsets.all(16),
-    decoration: BoxDecoration(
-       color: Colors.grey[900],
-      borderRadius: BorderRadius.circular(20),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black.withOpacity(0.3),
-          blurRadius: 10,
-          offset: const Offset(0, 4),
-        ),
-      ],
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title ?? 'Untitled Project',
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-           color: Colors.greenAccent // Green accent
+  Widget _buildProjectCard({
+    required String? title,
+    required String? description,
+    required VoidCallback onDelete,
+    required VoidCallback onLearnMore,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.grey[900],
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          description ?? 'No description provided',
-          style: const TextStyle(
-            fontSize: 14,
-            color: Color.fromARGB(255, 255, 255, 255),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title ?? 'Untitled Project',
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.greenAccent,
+            ),
           ),
-        ),
-        const SizedBox(height: 12),
-        
-        const SizedBox(height: 12),
-        Wrap(
-          spacing: 8,
-          children: const [
-            Chip(
-              label: Text("AI"),
-              labelStyle: TextStyle(color: Colors.greenAccent),
-             backgroundColor: Color.fromARGB(59, 105, 240, 175),
+          const SizedBox(height: 8),
+          Text(
+            description ?? 'No description provided',
+            style: const TextStyle(
+              fontSize: 14,
+              color: Color.fromARGB(255, 255, 255, 255),
             ),
-            Chip(
-              label: Text("Flutter"),
-           labelStyle: TextStyle(color: Colors.greenAccent),
-             backgroundColor: Color.fromARGB(59, 105, 240, 175),
-            ),
-            Chip(
-              label: Text("Dialogflow"),
-              labelStyle: TextStyle(color: Colors.greenAccent),
-             backgroundColor: Color.fromARGB(59, 105, 240, 175),
-            ),
-          ],
-        ),
-        Align(
-          alignment: Alignment.topRight,
-          child: IconButton(
-            icon: const Icon(Icons.delete, color: Colors.redAccent),
-            onPressed: onDelete,
           ),
-        )
-      ],
-    ),
-  );
-}
-
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            children: const [
+              Chip(
+                label: Text("AI"),
+                labelStyle: TextStyle(color: Colors.greenAccent),
+                backgroundColor: Color.fromARGB(59, 105, 240, 175),
+              ),
+              Chip(
+                label: Text("Flutter"),
+                labelStyle: TextStyle(color: Colors.greenAccent),
+                backgroundColor: Color.fromARGB(59, 105, 240, 175),
+              ),
+              Chip(
+                label: Text("Dialogflow"),
+                labelStyle: TextStyle(color: Colors.greenAccent),
+                backgroundColor: Color.fromARGB(59, 105, 240, 175),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              ElevatedButton(
+                onPressed: onLearnMore,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.greenAccent,
+                  foregroundColor: Colors.black,
+                ),
+                child: const Text("Learn More"),
+              ),
+              IconButton(
+                icon: const Icon(Icons.delete, color: Colors.redAccent),
+                onPressed: onDelete,
+              ),
+            ],
+          )
+        ],
+      ),
+    );
+  }
 }
