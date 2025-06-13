@@ -20,8 +20,6 @@ class _ExplorePageState extends State<ExplorePage> with SingleTickerProviderStat
   bool _roadmapLoading = false;
   int _currentIndex = 1;
   int _selectedTab = 0;
-  String? _generatedRoadmap;
-  List<String> _roadmapSteps = [];
 
   // Dropdown options
   String _selectedGoalLevel = 'Beginner';
@@ -87,7 +85,7 @@ Future<void> _generateProjects() async {
   });
 }
 
-// ... (rest of the code remains the same)
+// ... (rest of the code remains the same) 
 
   Future<void> _bookmarkProject(Map<String, String> project) async {
     try {
@@ -127,8 +125,6 @@ Future<void> _generateProjects() async {
 
     setState(() {
       _roadmapLoading = true;
-      _generatedRoadmap = null;
-      _roadmapSteps = [];
     });
 
     try {
