@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:trackpro/RoadmapTrackerPage.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class RoadmapPage extends StatelessWidget {
@@ -29,22 +30,40 @@ class RoadmapPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        backgroundColor: Colors.black,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.greenAccent),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          '🚀 ${title.replaceAll('**', '')} Roadmap', // Remove double asterisks
-          style: const TextStyle(
-            color: Colors.greenAccent,
-            fontSize: 20, // Slightly smaller for better fit
-            fontWeight: FontWeight.bold,
+  backgroundColor: Colors.black,
+  elevation: 0,
+  leading: IconButton(
+    icon: const Icon(Icons.arrow_back, color: Colors.greenAccent),
+    onPressed: () => Navigator.pop(context),
+  ),
+  title: Text(
+    '🚀 ${title.replaceAll('**', '')} Roadmap',
+    style: const TextStyle(
+      color: Colors.greenAccent,
+      fontSize: 20,
+      fontWeight: FontWeight.bold,
+    ),
+  ),
+  centerTitle: true,
+  actions: [
+    IconButton(
+      icon: const Icon(Icons.check, color: Colors.greenAccent),
+      tooltip: 'Add to Tracker',
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => RoadmapTrackerPage(
+              title: title,
+              content: content,
+            ),
           ),
-        ),
-        centerTitle: true,
-      ),
+        );
+      },
+    ),
+  ],
+),
+
       body: LayoutBuilder(
         builder: (context, constraints) {
           return SingleChildScrollView(
