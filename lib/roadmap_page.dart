@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:trackpro/RoadmapTrackerPage.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -30,44 +32,63 @@ class RoadmapPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-  backgroundColor: Colors.black,
-  elevation: 0,
-  leading: IconButton(
-    icon: const Icon(Icons.arrow_back, color: Colors.greenAccent),
-    onPressed: () => Navigator.pop(context),
-  ),
-  title: Text(
-    '🚀 ${title.replaceAll('**', '')} Roadmap',
-    style: const TextStyle(
-      color: Colors.greenAccent,
-      fontSize: 20,
-      fontWeight: FontWeight.bold,
-    ),
-  ),
-  centerTitle: true,
-  actions: [
-    IconButton(
-      icon: const Icon(Icons.check, color: Colors.greenAccent),
-      tooltip: 'Add to Tracker',
-      onPressed: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => RoadmapTrackerPage(
-              title: title,
-              content: content,
-            ),
+        backgroundColor: Colors.black,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.greenAccent),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text(
+          '🚀 ${title.replaceAll('**', '')} Roadmap',
+          style: const TextStyle(
+            color: Colors.greenAccent,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
           ),
-        );
-      },
-    ),
-  ],
-),
+        ),
+        centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.check, color: Colors.greenAccent),
+            tooltip: 'Add to Tracker',
+            onPressed: () async {
+              final user = FirebaseAuth.instance.currentUser;
 
+              if (user != null) {
+                final docRef = FirebaseFirestore.instance
+                    .collection('users')
+                    .doc(user.uid)
+                    .collection('tracked_projects');
+
+                await docRef.add({
+                  'title': title,
+                  'content': content,
+                  'timestamp': FieldValue.serverTimestamp(),
+                });
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('✅ Added to Tracker')),
+                );
+
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const RoadmapTrackerPage(),
+                  ),
+                );
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('⚠️ Please log in first')),
+                );
+              }
+            },
+          ),
+        ],
+      ),
       body: LayoutBuilder(
         builder: (context, constraints) {
           return SingleChildScrollView(
-            padding: EdgeInsets.all(constraints.maxWidth * 0.04), // Responsive padding
+            padding: EdgeInsets.all(constraints.maxWidth * 0.04),
             child: ConstrainedBox(
               constraints: BoxConstraints(
                 minHeight: constraints.maxHeight,
@@ -103,8 +124,8 @@ class RoadmapPage extends StatelessWidget {
         "This roadmap outlines a 10-week plan to achieve an intermediate understanding of ${title.replaceAll('**', '')}. "
         "It emphasizes hands-on practice and focuses on building a solid foundation before exploring advanced concepts.",
         style: TextStyle(
-          color: Colors.white70, 
-          fontSize: constraints.maxWidth * 0.04, // Responsive font size
+          color: Colors.white70,
+          fontSize: constraints.maxWidth * 0.04,
         ),
       ),
     );
@@ -114,7 +135,7 @@ class RoadmapPage extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
+        const Text(
           'Prerequisites',
           style: TextStyle(
             color: Colors.greenAccent,
@@ -146,7 +167,7 @@ class RoadmapPage extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
+        const Text(
           'Weekly Plan',
           style: TextStyle(
             color: Colors.greenAccent,
@@ -175,55 +196,7 @@ class RoadmapPage extends StatelessWidget {
       'Final Project and Advanced Concepts'
     ];
 
-    final weekResources = [
-      [
-        {'name': 'React - The Complete Guide', 'url': 'https://example.com/react-complete-guide', 'type': 'course'},
-        {'name': 'React Official Documentation', 'url': 'https://reactjs.org/docs', 'type': 'documentation'},
-      ],
-      [
-        {'name': 'Modern React with Redux', 'url': 'https://example.com/modern-react', 'type': 'course'},
-        {'name': 'React Component API', 'url': 'https://reactjs.org/docs/react-component.html', 'type': 'documentation'},
-      ],
-      [
-        {'name': 'React for Beginners', 'url': 'https://example.com/react-beginners', 'type': 'course'},
-        {'name': 'React State and Lifecycle', 'url': 'https://reactjs.org/docs/state-and-lifecycle.html', 'type': 'documentation'},
-      ],
-    ];
-
-    final weekProjects = [
-      'Simple Counter App: Build a counter app with increment and decrement buttons.',
-      'Simple To-Do List: Create a to-do list app with add, delete, and toggle functionalities.',
-      'Simple Calculator: Build a basic calculator app with button inputs and display.',
-      'Product List with Filtering: Create a product list with a search filter.',
-      'Simple User Registration Form: Build a form to collect user data.',
-      'Multi-Page Application: Create a simple multi-page app using React Router.',
-      'E-commerce Product Cart: Build a shopping cart with global state.',
-      'Refactor previous project with testing: Implement unit tests.',
-      'Portfolio Website: Build a portfolio showcasing your skills.',
-      'Personal Project: Choose a project of personal interest.',
-    ];
-
-    final weekMilestones = [
-      [
-        'Understand JSX syntax',
-        'Create a basic React component',
-        'Render data to the DOM',
-      ],
-      [
-        'Create reusable components',
-        'Pass data between components using props',
-        'Handle events in components',
-      ],
-      [
-        'Manage component state effectively',
-        'Understand component lifecycle methods',
-        'Use useState and useEffect hooks',
-      ],
-    ];
-
     final safeWeekIndex = weekNumber - 1;
-    final hasResources = weekResources.length > safeWeekIndex;
-    final hasMilestones = weekMilestones.length > safeWeekIndex;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -245,42 +218,6 @@ class RoadmapPage extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          
-          // Resources Section
-          const Text(
-            'Resources',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 8),
-          if (hasResources)
-            ...weekResources[safeWeekIndex].map((resource) => Padding(
-              padding: const EdgeInsets.only(bottom: 4),
-              child: Row(
-                children: [
-                  const Text('• ', style: TextStyle(color: Colors.white70)),
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () => _launchUrl(resource['url']!),
-                      child: Text(
-                        '${resource['name']} (${resource['type']})',
-                        style: const TextStyle(
-                          color: Colors.lightBlue,
-                          decoration: TextDecoration.underline,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            )),
-          const SizedBox(height: 8),
-          
-          // PDF Download Button
           if (weekPdfLinks.containsKey(weekNumber))
             SizedBox(
               width: double.infinity,
@@ -298,42 +235,6 @@ class RoadmapPage extends StatelessWidget {
                 ),
               ),
             ),
-          const SizedBox(height: 12),
-          
-          // Projects Section
-          const Text(
-            'Projects',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            weekProjects[safeWeekIndex].replaceAll('**', ''), // Remove double asterisks
-            style: const TextStyle(color: Colors.white70),
-          ),
-          const SizedBox(height: 12),
-          
-          // Milestones Section
-          const Text(
-            'Milestones',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 8),
-          if (hasMilestones)
-            ...weekMilestones[safeWeekIndex].map((milestone) => Padding(
-              padding: const EdgeInsets.only(bottom: 4),
-              child: Text(
-                '• ${milestone.replaceAll('**', '')}', // Remove double asterisks
-                style: const TextStyle(color: Colors.white70),
-              ),
-            )),
         ],
       ),
     );
@@ -355,7 +256,7 @@ class RoadmapPage extends StatelessWidget {
           'Advanced Topics',
           style: TextStyle(
             color: Colors.greenAccent,
-            fontSize: 20, 
+            fontSize: 20,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -366,7 +267,7 @@ class RoadmapPage extends StatelessWidget {
             color: Colors.grey[900],
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Column( 
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               ...advancedTopics.map((topic) => _buildBulletPoint(topic)),
@@ -386,7 +287,7 @@ class RoadmapPage extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 4),
       child: Text(
-        '• ${text.replaceAll('**', '')}', // Remove double asterisks
+        '• ${text.replaceAll('**', '')}',
         style: const TextStyle(color: Colors.white70),
       ),
     );

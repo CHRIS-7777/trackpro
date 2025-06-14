@@ -1,83 +1,90 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-class RoadmapTrackerPage extends StatefulWidget {
-  final String title;
-  final String content;
-
-  const RoadmapTrackerPage({
-    super.key,
-    required this.title,
-    required this.content,
-  });
-
-  @override
-  State<RoadmapTrackerPage> createState() => _RoadmapTrackerPageState();
-}
-
-class _RoadmapTrackerPageState extends State<RoadmapTrackerPage> {
-  bool showFullContent = false;
+class RoadmapTrackerPage extends StatelessWidget {
+  const RoadmapTrackerPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final String displayContent = showFullContent
-        ? widget.content
-        : widget.content.length > 150
-            ? '${widget.content.substring(0, 150)}...'
-            : widget.content;
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      return Scaffold(
+        backgroundColor: Colors.black,
+        appBar: AppBar(
+          title: const Text('Tracked Roadmaps'),
+          backgroundColor: Colors.black,
+        ),
+        body: const Center(
+          child: Text(
+            '⚠️ Please log in to view your tracked roadmaps.',
+            style: TextStyle(color: Colors.white70),
+          ),
+        ),
+      );
+    }
 
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        title: const Text('📌 Tracked Roadmap', style: TextStyle(color: Colors.greenAccent)),
+        title: const Text('📌 Tracked Roadmaps'),
         backgroundColor: Colors.black,
-        iconTheme: const IconThemeData(color: Colors.greenAccent),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.grey[900],
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.greenAccent.withOpacity(0.4)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                widget.title.replaceAll('**', ''),
-                style: const TextStyle(
-                  color: Colors.greenAccent,
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                ),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .collection('tracked_projects')
+            .orderBy('timestamp', descending: true)
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return const Center(
+              child: Text(
+                'No roadmaps tracked yet.',
+                style: TextStyle(color: Colors.white70),
               ),
-              const SizedBox(height: 12),
-              Text(
-                displayContent,
-                style: const TextStyle(
-                  color: Colors.white70,
-                  fontSize: 16,
+            );
+          }
+
+          final projects = snapshot.data!.docs;
+
+          return ListView.builder(
+            padding: const EdgeInsets.all(12),
+            itemCount: projects.length,
+            itemBuilder: (context, index) {
+              final data = projects[index].data() as Map<String, dynamic>;
+
+              return Card(
+                color: Colors.grey[900],
+                margin: const EdgeInsets.only(bottom: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
-              ),
-              const SizedBox(height: 8),
-              Align(
-                alignment: Alignment.bottomRight,
-                child: TextButton(
-                  onPressed: () {
-                    setState(() {
-                      showFullContent = !showFullContent;
-                    });
-                  },
-                  style: TextButton.styleFrom(
-                    foregroundColor: Colors.greenAccent,
+                child: ListTile(
+                  title: Text(
+                    data['title'] ?? '',
+                    style: const TextStyle(
+                      color: Colors.greenAccent,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                  child: Text(showFullContent ? 'View Less' : 'View More'),
+                  subtitle: Text(
+                    (data['content'] ?? '').toString().length > 100
+                        ? '${data['content'].toString().substring(0, 100)}...'
+                        : data['content'] ?? '',
+                    style: const TextStyle(color: Colors.white70),
+                  ),
+                  trailing: const Icon(Icons.arrow_forward_ios, color: Colors.greenAccent, size: 16),
+                  onTap: () {
+                    // Optional: Navigate to detailed view if needed
+                  },
                 ),
-              ),
-            ],
-          ),
-        ),
+              );
+            },
+          );
+        },
       ),
     );
   }
