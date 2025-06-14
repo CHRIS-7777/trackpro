@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_gemini/flutter_gemini.dart';
 import 'package:trackpro/CreateResume.dart';
+import 'package:trackpro/RoadmapTrackerPage.dart';
 import 'package:trackpro/SignUpPage.dart';
 import 'package:trackpro/createproject.dart';
 import 'package:trackpro/dashboard.dart';
@@ -53,6 +54,10 @@ class MyApp extends StatelessWidget {
         '/add': (context) => const CreateProjectPage(),
         '/create-resume': (context) => const ResumeGeneratorPage(),
         '/stats': (context) => const PlatformStatsPage(),
+        '/track': (context) => const RoadmapTrackerPage(
+    title: 'Example Title',
+    content: 'Example content for the tracked roadmap...',
+  ),
       },
     );
   }

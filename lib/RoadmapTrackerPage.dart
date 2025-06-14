@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class RoadmapTrackerPage extends StatelessWidget {
+class RoadmapTrackerPage extends StatefulWidget {
   final String title;
   final String content;
 
@@ -11,7 +11,20 @@ class RoadmapTrackerPage extends StatelessWidget {
   });
 
   @override
+  State<RoadmapTrackerPage> createState() => _RoadmapTrackerPageState();
+}
+
+class _RoadmapTrackerPageState extends State<RoadmapTrackerPage> {
+  bool showFullContent = false;
+
+  @override
   Widget build(BuildContext context) {
+    final String displayContent = showFullContent
+        ? widget.content
+        : widget.content.length > 150
+            ? '${widget.content.substring(0, 150)}...'
+            : widget.content;
+
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
@@ -32,7 +45,7 @@ class RoadmapTrackerPage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                title.replaceAll('**', ''),
+                widget.title.replaceAll('**', ''),
                 style: const TextStyle(
                   color: Colors.greenAccent,
                   fontSize: 22,
@@ -41,10 +54,25 @@ class RoadmapTrackerPage extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               Text(
-                content,
+                displayContent,
                 style: const TextStyle(
                   color: Colors.white70,
                   fontSize: 16,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Align(
+                alignment: Alignment.bottomRight,
+                child: TextButton(
+                  onPressed: () {
+                    setState(() {
+                      showFullContent = !showFullContent;
+                    });
+                  },
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.greenAccent,
+                  ),
+                  child: Text(showFullContent ? 'View Less' : 'View More'),
                 ),
               ),
             ],

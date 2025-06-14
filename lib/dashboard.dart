@@ -225,6 +225,11 @@ class _DashboardPageState extends State<DashboardPage> {
               onTap: () => Navigator.pushNamed(context, '/profile'),
             ),
             ListTile(
+              leading: const Icon(Icons.logout),
+              title: const Text("Tracker"),
+              onTap: () => Navigator.pushNamed(context, '/track'),
+            ),
+            ListTile(
               leading: const Icon(Icons.dashboard),
               title: const Text("Platform stats"),
               onTap: () => Navigator.pushNamed(context, '/stats'),
