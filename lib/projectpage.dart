@@ -365,7 +365,7 @@ Widget _buildProjectCard({
           style: const TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold,
-            color: Colors.tealAccent,
+            color: Colors.greenAccent,
             height: 1.1,
           ),
         ),
