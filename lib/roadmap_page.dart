@@ -51,37 +51,7 @@ class RoadmapPage extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.check, color: Colors.greenAccent),
             tooltip: 'Add to Tracker',
-            onPressed: () async {
-              final user = FirebaseAuth.instance.currentUser;
-
-              if (user != null) {
-                final docRef = FirebaseFirestore.instance
-                    .collection('users')
-                    .doc(user.uid)
-                    .collection('tracked_projects');
-
-                await docRef.add({
-                  'title': title,
-                  'content': content,
-                  'timestamp': FieldValue.serverTimestamp(),
-                });
-
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('✅ Added to Tracker')),
-                );
-
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const RoadmapTrackerPage(),
-                  ),
-                );
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('⚠️ Please log in first')),
-                );
-              }
-            },
+            onPressed: () => _addToTracker(context),
           ),
         ],
       ),
@@ -110,6 +80,45 @@ class RoadmapPage extends StatelessWidget {
         },
       ),
     );
+  }
+
+  Future<void> _addToTracker(BuildContext context) async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('⚠️ Please log in first')),
+      );
+      return;
+    }
+
+    final docRef = FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .collection('tracked_projects');
+
+    try {
+      await docRef.add({
+        'title': title,
+        'content': content,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('✅ Added to Tracker')),
+      );
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const RoadmapTrackerPage(),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('❌ Failed to add: ${e.toString()}')),
+      );
+    }
   }
 
   Widget _buildHeaderSection(BoxConstraints constraints) {
@@ -164,6 +173,19 @@ class RoadmapPage extends StatelessWidget {
   }
 
   Widget _buildWeeklyPlanSection() {
+    final weekTitles = [
+      'Getting started with React fundamentals',
+      'Understanding components and props',
+      'State management and lifecycle methods',
+      'Working with lists and conditional rendering',
+      'Forms and handling user input',
+      'Introduction to React Router',
+      'Introduction to state management (Context API or Redux)',
+      'Advanced React Hooks and Testing',
+      'Consolidation and Project Refinement',
+      'Final Project and Advanced Concepts',
+    ];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -176,28 +198,13 @@ class RoadmapPage extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 8),
-        for (int weekNumber = 1; weekNumber <= 10; weekNumber++)
-          _buildWeekContainer(weekNumber),
+        for (int week = 1; week <= 10; week++)
+          _buildWeekContainer(week, weekTitles[week - 1]),
       ],
     );
   }
 
-  Widget _buildWeekContainer(int weekNumber) {
-    final weekTitles = [
-      'Getting started with React fundamentals',
-      'Understanding components and props',
-      'State management and lifecycle methods',
-      'Working with lists and conditional rendering',
-      'Forms and handling user input',
-      'Introduction to React Router',
-      'Introduction to state management (Context API or Redux)',
-      'Advanced React Hooks and Testing',
-      'Consolidation and Project Refinement',
-      'Final Project and Advanced Concepts'
-    ];
-
-    final safeWeekIndex = weekNumber - 1;
-
+  Widget _buildWeekContainer(int weekNumber, String title) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
@@ -210,7 +217,7 @@ class RoadmapPage extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Week $weekNumber: ${weekTitles[safeWeekIndex]}',
+            'Week $weekNumber: $title',
             style: const TextStyle(
               color: Colors.greenAccent,
               fontSize: 18,
@@ -270,7 +277,7 @@ class RoadmapPage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ...advancedTopics.map((topic) => _buildBulletPoint(topic)),
+              ...advancedTopics.map(_buildBulletPoint),
               const SizedBox(height: 12),
               const Text(
                 'After completing the 10-week roadmap, explore these advanced topics to deepen your expertise.',
@@ -294,8 +301,9 @@ class RoadmapPage extends StatelessWidget {
   }
 
   Future<void> _launchUrl(String url) async {
-    if (await canLaunchUrl(Uri.parse(url))) {
-      await launchUrl(Uri.parse(url));
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
     }
   }
 }

@@ -30,9 +30,9 @@ class _ProjectsPageState extends State<ProjectsPage> {
 
   Future<void> showRoadmapDialog(String title, String docId) async {
     if (!mounted) return;
-    
+
     setState(() => _loadingStates[docId] = true);
-    
+
     try {
       final result = await Gemini.instance.text(
         "Generate a detailed roadmap for learning about: $title\n"
@@ -41,7 +41,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
         "2. Recommended resources\n"
         "3. Estimated time for each step\n"
         "4. Prerequisites\n\n"
-        "Format as a numbered list with clear headings."
+        "Format as a numbered list with clear headings.",
       );
 
       if (!mounted) return;
@@ -67,6 +67,30 @@ class _ProjectsPageState extends State<ProjectsPage> {
       if (mounted) {
         setState(() => _loadingStates.remove(docId));
       }
+    }
+  }
+
+  Future<void> _saveToRoadmapTracker(String title, String description) async {
+    if (user == null) return;
+
+    try {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user!.uid)
+          .collection('roadmap_tracker')
+          .add({
+        'title': title,
+        'description': description,
+        'savedAt': Timestamp.now(),
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Saved to Roadmap Tracker')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error saving: ${e.toString()}')),
+      );
     }
   }
 
@@ -332,153 +356,131 @@ class _ProjectsPageState extends State<ProjectsPage> {
     }
   }
 
-Widget _buildProjectCard({
-  required String title,
-  required String description,
-  required VoidCallback onDelete,
-  required VoidCallback onLearnMore,
-  required bool isLoading,
-}) {
-  // Sample technology tags – you can replace this with dynamic data later
-  final List<String> techList = [
-    'Flutter',
-    'Dart',
-    'Firebase (for backend simulation)',
-    'Provider/Riverpod (state management)',
-    'HTTP requests',
-  ];
+  Widget _buildProjectCard({
+    required String title,
+    required String description,
+    required VoidCallback onDelete,
+    required VoidCallback onLearnMore,
+    required bool isLoading,
+  }) {
+    final List<String> techList = [
+      'Flutter',
+      'Dart',
+      'Firebase',
+      'Provider',
+      'HTTP',
+    ];
 
-  return Container(
-    margin: const EdgeInsets.symmetric(vertical: 10),
-    padding: const EdgeInsets.all(16),
-    decoration: BoxDecoration(
-      color: Colors.black.withOpacity(0.5),
-      borderRadius: BorderRadius.circular(16),
-      border: Border.all(color: Colors.greenAccent.withOpacity(0.4)),
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // 🔹 Title with stacked lines
-        Text(
-          title.replaceAll(' ', ' '),
-          style: const TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: Colors.greenAccent,
-            height: 1.1,
-          ),
-        ),
-        const SizedBox(height: 10),
-
-        // 🔹 Short project summary
-        Text(
-          description,
-          style: const TextStyle(
-            fontSize: 14,
-            color: Colors.white70,
-          ),
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-        ),
-        const SizedBox(height: 14),
-
-        // 🔹 Technologies section
-        const Text(
-          'Technologies',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 6),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: techList.map((tech) {
-            return Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.white),
-                borderRadius: BorderRadius.circular(30),
-              ),
-              child: Text(
-                tech,
-                style: const TextStyle(color: Colors.white, fontSize: 12),
-              ),
-            );
-          }).toList(),
-        ),
-
-        const SizedBox(height: 16),
-
-        // 🔹 Roadmap Section
-        const Text(
-          'Roadmap',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 15,
-          ),
-        ),
-        const SizedBox(height: 4),
-        const Text(
-          '## Flutter-Powered Smart Home Dashboard: Project Roadmap',
-          style: TextStyle(
-            color: Colors.white60,
-            fontSize: 13,
-          ),
-        ),
-        const SizedBox(height: 2),
-        GestureDetector(
-          onTap: onLearnMore,
-          child: const Text(
-            'View Roadmap Tracker',
-            style: TextStyle(
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 10),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(0.5),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.greenAccent.withOpacity(0.4)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
               color: Colors.greenAccent,
-              fontSize: 13,
-              decoration: TextDecoration.underline,
+              height: 1.1,
             ),
           ),
-        ),
-
-        const SizedBox(height: 14),
-
-        // 🔹 Buttons
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            ElevatedButton(
-              onPressed: isLoading ? null : onLearnMore,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.transparent,
-                foregroundColor: Colors.greenAccent,
-                side: const BorderSide(color: Colors.greenAccent),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
+          const SizedBox(height: 10),
+          Text(
+            description,
+            style: const TextStyle(fontSize: 14, color: Colors.white70),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 14),
+          const Text(
+            'Technologies',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: techList.map((tech) {
+              return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.white),
+                  borderRadius: BorderRadius.circular(30),
                 ),
+                child: Text(
+                  tech,
+                  style: const TextStyle(color: Colors.white, fontSize: 12),
+                ),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            'Roadmap',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            '## Flutter-Powered Smart Home Dashboard: Project Roadmap',
+            style: TextStyle(color: Colors.white60, fontSize: 13),
+          ),
+          const SizedBox(height: 2),
+          GestureDetector(
+            onTap: onLearnMore,
+            child: const Text(
+              'View Roadmap Tracker',
+              style: TextStyle(
+                color: Colors.greenAccent,
+                fontSize: 13,
+                decoration: TextDecoration.underline,
               ),
-              child: isLoading
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        color: Colors.greenAccent,
-                        strokeWidth: 3,
-                      ),
-                    )
-                  : const Text("Generate Roadmap"),
             ),
-            IconButton(
-              icon: const Icon(Icons.delete, color: Colors.redAccent),
-              onPressed: isLoading ? null : onDelete,
-            ),
-          ],
-        ),
-      ],
-    ),
-  );
-}
-
-
+          ),
+          const SizedBox(height: 14),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              ElevatedButton(
+                onPressed: isLoading ? null : onLearnMore,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  foregroundColor: Colors.greenAccent,
+                  side: const BorderSide(color: Colors.greenAccent),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                child: isLoading
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          color: Colors.greenAccent,
+                          strokeWidth: 3,
+                        ),
+                      )
+                    : const Text("Generate Roadmap"),
+              ),
+              IconButton(
+                icon: const Icon(Icons.bookmark_add, color: Colors.greenAccent),
+                tooltip: 'Save to Roadmap Tracker',
+                onPressed: isLoading ? null : () => _saveToRoadmapTracker(title, description),
+              ),
+              IconButton(
+                icon: const Icon(Icons.delete, color: Colors.redAccent),
+                onPressed: isLoading ? null : onDelete,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 }

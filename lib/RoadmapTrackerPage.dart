@@ -64,21 +64,25 @@ class RoadmapTrackerPage extends StatelessWidget {
                 ),
                 child: ListTile(
                   title: Text(
-                    data['title'] ?? '',
+                    data['title'] ?? 'Untitled',
                     style: const TextStyle(
                       color: Colors.greenAccent,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   subtitle: Text(
-                    (data['content'] ?? '').toString().length > 100
+                    (data['content'] ?? 'No description').toString().length > 100
                         ? '${data['content'].toString().substring(0, 100)}...'
-                        : data['content'] ?? '',
+                        : data['content'] ?? 'No description',
                     style: const TextStyle(color: Colors.white70),
                   ),
-                  trailing: const Icon(Icons.arrow_forward_ios, color: Colors.greenAccent, size: 16),
+                  trailing: const Icon(
+                    Icons.arrow_forward_ios,
+                    color: Colors.greenAccent,
+                    size: 16,
+                  ),
                   onTap: () {
-                    // Optional: Navigate to detailed view if needed
+                    // Optional: Show a detail page if needed in the future
                   },
                 ),
               );
