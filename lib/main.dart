@@ -13,6 +13,7 @@ import 'package:trackpro/profile.dart';
 import 'package:trackpro/projectpage.dart';
 import 'package:trackpro/explorepage.dart';
 import 'package:trackpro/recommend.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,6 +27,13 @@ void main() async {
     ),
   );
   runApp(const MyApp());
+}
+Future<void> launchUrl(Uri uri) async {
+  if (await canLaunchUrl(uri)) {
+    await launchUrl(uri);
+  } else {
+    throw 'Could not launch $uri';
+  }
 }
 
 class MyApp extends StatelessWidget {
