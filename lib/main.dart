@@ -17,7 +17,18 @@ import 'package:url_launcher/url_launcher.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  Gemini.init(apiKey: 'AIzaSyDYQqol4UPKrBujeKUfWxMMNoscZzfGqiM');
+  
+  // Initialize Gemini with error handling
+  try {
+    Gemini.init(
+      apiKey: 'AIzaSyDYQqol4UPKrBujeKUfWxMMNoscZzfGqiM',
+      enableDebugging: true,  // Add this for debugging
+    );
+    print('Gemini initialized successfully');
+  } catch (e) {
+    print('Error initializing Gemini: $e');
+  }
+
   await Firebase.initializeApp(
     options: FirebaseOptions(
       apiKey: 'AIzaSyA5lnFpUEnqfV8U-QBohgUIamptQS_7goA',
@@ -27,13 +38,6 @@ void main() async {
     ),
   );
   runApp(const MyApp());
-}
-Future<void> launchUrl(Uri uri) async {
-  if (await canLaunchUrl(uri)) {
-    await launchUrl(uri);
-  } else {
-    throw 'Could not launch $uri';
-  }
 }
 
 class MyApp extends StatelessWidget {
