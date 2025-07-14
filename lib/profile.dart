@@ -101,7 +101,7 @@ class ProfilePage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _glowText("CHRIS", fontSize: 25),
+              _glowText("CHRIS", fontSize: 25),//username
               const Text("chris@example.com", style: TextStyle(color: Colors.grey)),
               const SizedBox(height: 6),
               Wrap(
