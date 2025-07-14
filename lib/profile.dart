@@ -117,7 +117,7 @@ class ProfilePage extends StatelessWidget {
                 "Passionate programmer focused on full-stack development and competitive programming.",
                 style: TextStyle(color: Colors.white70),
               )
-            ],
+            ],//column11
           ),
         )
       ],
