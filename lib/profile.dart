@@ -104,7 +104,7 @@ class ProfilePage extends StatelessWidget {
               _glowText("CHRIS", fontSize: 25),//username
               const Text("chris@example.com", style: TextStyle(color: Colors.grey)),
               const SizedBox(height: 6),
-              Wrap(
+              Wrap(//wrapping
                 spacing: 1,
                 children: const [
                   Chip(label: Text("Student", style: TextStyle(color: Colors.white))),
