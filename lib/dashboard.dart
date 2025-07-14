@@ -41,7 +41,7 @@ class _DashboardPageState extends State<DashboardPage> {
     await _fetchAllPlatformData();
     setState(() => isLoading = false);
   }
-
+//fetching github
   Future<void> fetchGitHubRepoCountFromFirestore() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
