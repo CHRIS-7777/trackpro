@@ -13,22 +13,17 @@ import 'package:trackpro/profile.dart';
 import 'package:trackpro/projectpage.dart';
 import 'package:trackpro/explorepage.dart';
 import 'package:trackpro/recommend.dart';
-import 'package:url_launcher/url_launcher.dart';
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Initialize Gemini with error handling
   try {
     Gemini.init(
       apiKey: 'AIzaSyDYQqol4UPKrBujeKUfWxMMNoscZzfGqiM',
-      enableDebugging: true,  // Add this for debugging
+      enableDebugging: true, 
     );
     print('Gemini initialized successfully');
   } catch (e) {
     print('Error initializing Gemini: $e');
   }
-
   await Firebase.initializeApp(
     options: FirebaseOptions(
       apiKey: 'AIzaSyA5lnFpUEnqfV8U-QBohgUIamptQS_7goA',
@@ -39,7 +34,6 @@ void main() async {
   );
   runApp(const MyApp());
 }
-
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -66,8 +60,7 @@ class MyApp extends StatelessWidget {
         '/add': (context) => const CreateProjectPage(),
         '/create-resume': (context) => const ResumeGeneratorPage(),
         '/stats': (context) => const PlatformStatsPage(),
-        '/track': (context) => const RoadmapTrackerPage(), // Keep for fallback
-
+        '/track': (context) => const RoadmapTrackerPage(),
       },
     );
   }

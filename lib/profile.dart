@@ -8,12 +8,12 @@ class ProfilePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        iconTheme: IconThemeData(color: Colors.greenAccent),
+        iconTheme: IconThemeData(color: const Color.fromARGB(255, 0, 0, 0)),
         backgroundColor: const Color.fromARGB(255, 0, 0, 0),
-        elevation: 0,
+        elevation: 45,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.greenAccent),
-          onPressed: () => Navigator.pushNamed(context, '/dash'),
+          onPressed: () => Navigator.pushNamed(context, '/login'),
         ),
         title: const Text(
           "Profile",
