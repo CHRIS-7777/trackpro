@@ -82,44 +82,48 @@ class RoadmapPage extends StatelessWidget {
     );
   }
 
-  Future<void> _addToTracker(BuildContext context) async {
-    final user = FirebaseAuth.instance.currentUser;
+ Future<void> _addToTracker(BuildContext context) async {
+  final user = FirebaseAuth.instance.currentUser;
 
-    if (user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('⚠️ Please log in first')),
-      );
-      return;
-    }
+  if (user == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('⚠️ Please log in first')),
+    );
+    return;
+  }
 
+  try {
     final docRef = FirebaseFirestore.instance
         .collection('users')
         .doc(user.uid)
-        .collection('tracked_projects');
+        .collection('roadmap_tracker')
+        .doc();
 
-    try {
-      await docRef.add({
-        'title': title,
-        'content': content,
-        'timestamp': FieldValue.serverTimestamp(),
-      });
+    await docRef.set({
+      'title': title,
+      'description': content,
+      'savedAt': FieldValue.serverTimestamp(),
+      'type': 'roadmap',
+    });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('✅ Added to Tracker')),
-      );
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('✅ Added to Tracker')),
+    );
 
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const RoadmapTrackerPage(),
-        ),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('❌ Failed to add: ${e.toString()}')),
-      );
-    }
+    await Future.delayed(const Duration(milliseconds: 500));
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const RoadmapTrackerPage(),
+      ),
+    );
+  } catch (e) {
+    debugPrint('Error saving roadmap: $e');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('❌ Failed to add: ${e.toString()}')),
+    );
   }
+}
 
   Widget _buildHeaderSection(BoxConstraints constraints) {
     return Container(
