@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:trackpro/homepage.dart'; // Replace with your actual homepage
+import 'package:trackpro/homepage.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -12,13 +12,38 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  bool _isLoading = false;
+
+  // Caesar cipher encryption (same as signup page)
+  String _caesarEncrypt(String text, {int shift = 5}) {
+    String result = '';
+    for (int i = 0; i < text.length; i++) {
+      int charCode = text.codeUnitAt(i);
+      if (charCode >= 65 && charCode <= 90) {
+        result += String.fromCharCode((charCode - 65 + shift) % 26 + 65);
+      } else if (charCode >= 97 && charCode <= 122) {
+        result += String.fromCharCode((charCode - 97 + shift) % 26 + 97);
+      } else if (charCode >= 48 && charCode <= 57) {
+        result += String.fromCharCode((charCode - 48 + shift) % 10 + 48);
+      } else {
+        result += text[i];
+      }
+    }
+    return result;
+  }
 
   Future<void> login() async {
+    setState(() => _isLoading = true);
+    
     try {
+      // Encrypt the email before sending to Firebase
+      final encryptedEmail = _caesarEncrypt(emailController.text.trim());
+      
       await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: emailController.text.trim(),
-        password: passwordController.text.trim(),
+        email: encryptedEmail, // Use encrypted email
+        password: passwordController.text.trim(), // Password stays original
       );
+      
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const HomePage()),
@@ -33,8 +58,11 @@ class _LoginPageState extends State<LoginPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(errorMessage)),
       );
+    } finally {
+      setState(() => _isLoading = false);
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -79,8 +107,7 @@ class _LoginPageState extends State<LoginPage> {
                 const CircleAvatar(
                   radius: 30,
                   backgroundColor: Colors.white30,
-                  child: Icon(Icons.person
-                  , size: 30, color: Colors.white),
+                  child: Icon(Icons.person, size: 30, color: Colors.white),
                 ),
                 const SizedBox(height: 20),
                 _buildTextField(Icons.email, "Email ID", controller: emailController),
@@ -88,7 +115,7 @@ class _LoginPageState extends State<LoginPage> {
                 _buildTextField(Icons.lock, "Password", isPassword: true, controller: passwordController),
                 const SizedBox(height: 20),
                 ElevatedButton(
-                  onPressed: login,
+                  onPressed: _isLoading ? null : login,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color.fromARGB(255, 0, 183, 140),
                     padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 15),
@@ -96,15 +123,17 @@ class _LoginPageState extends State<LoginPage> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  child: const Text(
-                    "LOGIN",
-                    style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold),
-                  ),
+                  child: _isLoading
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text(
+                          "LOGIN",
+                          style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold),
+                        ),
                 ),
                 const SizedBox(height: 10),
                 TextButton(
                   onPressed: () {
-                    Navigator.pushNamed(context,'/signup'); // Go back to signup page if needed
+                    Navigator.pushNamed(context,'/signup');
                   },
                   child: const Text("Don't have an account? Sign Up", style: TextStyle(color: Colors.white70)),
                 ),
@@ -115,6 +144,7 @@ class _LoginPageState extends State<LoginPage> {
       ),
     );
   }
+
   Widget _buildTextField(IconData icon, String hint,
       {bool isPassword = false, required TextEditingController controller}) {
     return TextField(

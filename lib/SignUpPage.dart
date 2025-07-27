@@ -1,24 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:trackpro/homepage.dart';
-import 'package:encrypt/encrypt.dart' as encrypt;
-
-class EncryptionHelper {
-  static final _key = encrypt.Key.fromUtf8('16charsecretkey!'); // 16 chars
-  static final _iv = encrypt.IV.fromLength(16);
-
-  static String encryptData(String plainText) {
-    final encrypter = encrypt.Encrypter(encrypt.AES(_key));
-    final encrypted = encrypter.encrypt(plainText, iv: _iv);
-    return encrypted.base64;
-  }
-
-  static String decryptData(String encryptedText) {
-    final encrypter = encrypt.Encrypter(encrypt.AES(_key));
-    return encrypter.decrypt64(encryptedText, iv: _iv);
-  }
-}
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -28,49 +9,66 @@ class SignUpPage extends StatefulWidget {
 }
 
 class _SignUpPageState extends State<SignUpPage> {
+  final _auth = FirebaseAuth.instance;
   final nameController = TextEditingController();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+  bool _isLoading = false;
 
-  void registerUser() async {
+  // Caesar cipher encryption (shift of 5)
+  String _caesarEncrypt(String text, {int shift = 5}) {
+    String result = '';
+    for (int i = 0; i < text.length; i++) {
+      int charCode = text.codeUnitAt(i);
+      // Encrypt uppercase letters
+      if (charCode >= 65 && charCode <= 90) {
+        result += String.fromCharCode((charCode - 65 + shift) % 26 + 65);
+      } 
+      // Encrypt lowercase letters
+      else if (charCode >= 97 && charCode <= 122) {
+        result += String.fromCharCode((charCode - 97 + shift) % 26 + 97);
+      } 
+      // Encrypt numbers (0-9)
+      else if (charCode >= 48 && charCode <= 57) {
+        result += String.fromCharCode((charCode - 48 + shift) % 10 + 48);
+      }
+      // Leave special characters as-is (@, ., etc.)
+      else {
+        result += text[i];
+      }
+    }
+    return result;
+  }
+
+  Future<void> _registerUser() async {
+    setState(() => _isLoading = true);
+    
     try {
-      // 1. Create user in Firebase Auth
-      UserCredential userCredential = await FirebaseAuth.instance
-          .createUserWithEmailAndPassword(
-        email: emailController.text.trim(),
-        password: passwordController.text.trim(),
+      // Encrypt name and email
+      final encryptedName = _caesarEncrypt(nameController.text.trim());
+      final encryptedEmail = _caesarEncrypt(emailController.text.trim());
+      
+      // Create user with encrypted email and original password
+      await _auth.createUserWithEmailAndPassword(
+        email: encryptedEmail, // Store encrypted email
+        password: passwordController.text.trim(), // Keep password original
       );
-
-      // 2. Encrypt data before saving to Firestore
-      final encryptedName =
-          EncryptionHelper.encryptData(nameController.text.trim());
-      final encryptedEmail =
-          EncryptionHelper.encryptData(emailController.text.trim());
-
-      // 3. Save encrypted details to Firestore
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(userCredential.user!.uid)
-          .set({
-        'name': encryptedName,
-        'email': encryptedEmail,
-        'createdAt': DateTime.now(),
-      });
-
-      // Show success
+      
+      // Update the user's display name with encrypted version
+      await _auth.currentUser?.updateDisplayName(encryptedName);
+      
+      // Show success and navigate
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Account Created Successfully")),
       );
- 
-      // Navigate to home
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const HomePage()),
-      );
+      Navigator.pushReplacementNamed(context, '/home');
+      
     } on FirebaseAuthException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(e.message ?? "Signup Failed")),
       );
+    } finally {
+      setState(() => _isLoading = false);
     }
   }
 
@@ -98,8 +96,7 @@ class _SignUpPageState extends State<SignUpPage> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                   decoration: BoxDecoration(
                     color: Colors.white10,
                     borderRadius: BorderRadius.circular(30),
@@ -122,17 +119,57 @@ class _SignUpPageState extends State<SignUpPage> {
                   child: Icon(Icons.person_add, size: 30, color: Colors.white),
                 ),
                 const SizedBox(height: 20),
-                _buildTextField(Icons.person, "Full Name",
-                    controller: nameController),
+                TextField(
+                  controller: nameController,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    prefixIcon: const Icon(Icons.person, color: Colors.white70),
+                    hintText: "Full Name",
+                    hintStyle: const TextStyle(color: Colors.white54),
+                    filled: true,
+                    fillColor: Colors.white10,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
                 const SizedBox(height: 10),
-                _buildTextField(Icons.email, "Email ID",
-                    controller: emailController),
+                TextField(
+                  controller: emailController,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    prefixIcon: const Icon(Icons.email, color: Colors.white70),
+                    hintText: "Email ID",
+                    hintStyle: const TextStyle(color: Colors.white54),
+                    filled: true,
+                    fillColor: Colors.white10,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
                 const SizedBox(height: 10),
-                _buildTextField(Icons.lock, "Password",
-                    isPassword: true, controller: passwordController),
+                TextField(
+                  controller: passwordController,
+                  obscureText: true,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    prefixIcon: const Icon(Icons.lock, color: Colors.white70),
+                    hintText: "Password",
+                    hintStyle: const TextStyle(color: Colors.white54),
+                    filled: true,
+                    fillColor: Colors.white10,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
                 const SizedBox(height: 20),
                 ElevatedButton(
-                  onPressed: registerUser,
+                  onPressed: _isLoading ? null : _registerUser,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color.fromARGB(255, 0, 183, 140),
                     padding: const EdgeInsets.symmetric(
@@ -141,43 +178,23 @@ class _SignUpPageState extends State<SignUpPage> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  child: const Text("SIGN UP",
-                      style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold)),
+                  child: _isLoading
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text("SIGN UP",
+                          style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold)),
                 ),
                 const SizedBox(height: 10),
                 TextButton(
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/login');
-                  },
+                  onPressed: () => Navigator.pushNamed(context, '/login'),
                   child: const Text("Already have an acc? Login",
                       style: TextStyle(color: Colors.white70)),
                 ),
               ],
             ),
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTextField(IconData icon, String hint,
-      {bool isPassword = false, required TextEditingController controller}) {
-    return TextField(
-      controller: controller,
-      obscureText: isPassword,
-      style: const TextStyle(color: Colors.white),
-      decoration: InputDecoration(
-        prefixIcon: Icon(icon, color: Colors.white70),
-        hintText: hint,
-        hintStyle: const TextStyle(color: Colors.white54),
-        filled: true,
-        fillColor: Colors.white10,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
         ),
       ),
     );
