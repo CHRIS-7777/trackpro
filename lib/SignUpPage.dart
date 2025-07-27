@@ -1,6 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:trackpro/homepage.dart';
+import 'package:encrypt/encrypt.dart' as encrypt;
+
+class EncryptionHelper {
+  static final _key = encrypt.Key.fromUtf8('16charsecretkey!'); // 16 chars
+  static final _iv = encrypt.IV.fromLength(16);
+
+  static String encryptData(String plainText) {
+    final encrypter = encrypt.Encrypter(encrypt.AES(_key));
+    final encrypted = encrypter.encrypt(plainText, iv: _iv);
+    return encrypted.base64;
+  }
+
+  static String decryptData(String encryptedText) {
+    final encrypter = encrypt.Encrypter(encrypt.AES(_key));
+    return encrypter.decrypt64(encryptedText, iv: _iv);
+  }
+}
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -16,13 +34,35 @@ class _SignUpPageState extends State<SignUpPage> {
 
   void registerUser() async {
     try {
-      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      // 1. Create user in Firebase Auth
+      UserCredential userCredential = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(
         email: emailController.text.trim(),
         password: passwordController.text.trim(),
       );
+
+      // 2. Encrypt data before saving to Firestore
+      final encryptedName =
+          EncryptionHelper.encryptData(nameController.text.trim());
+      final encryptedEmail =
+          EncryptionHelper.encryptData(emailController.text.trim());
+
+      // 3. Save encrypted details to Firestore
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userCredential.user!.uid)
+          .set({
+        'name': encryptedName,
+        'email': encryptedEmail,
+        'createdAt': DateTime.now(),
+      });
+
+      // Show success
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Account Created Successfully")),
       );
+
+      // Navigate to home
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const HomePage()),
@@ -110,7 +150,7 @@ class _SignUpPageState extends State<SignUpPage> {
                 const SizedBox(height: 10),
                 TextButton(
                   onPressed: () {
-                    Navigator.pushNamed(context,'/login');
+                    Navigator.pushNamed(context, '/login');
                   },
                   child: const Text("Already have an acc? Login",
                       style: TextStyle(color: Colors.white70)),
