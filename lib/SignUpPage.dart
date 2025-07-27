@@ -61,7 +61,7 @@ class _SignUpPageState extends State<SignUpPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Account Created Successfully")),
       );
-
+ 
       // Navigate to home
       Navigator.pushReplacement(
         context,
