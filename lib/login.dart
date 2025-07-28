@@ -15,8 +15,9 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   bool _isLoading = false;
+  final String _googleScriptUrl = "https://script.google.com/macros/s/AKfycbygy16otxfuyCCn69MVtcbhi8J9iAY7e7_VRvkzpc6WZXQzt1eUB0H9OVjhcjkvfovC5A/exec"; // Replace this
 
-  // Caesar cipher encryption (same as signup page)
+  // Caesar cipher encryption
   String _caesarEncrypt(String text, {int shift = 5}) {
     String result = '';
     for (int i = 0; i < text.length; i++) {
@@ -54,13 +55,36 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
+  Future<void> _logToGoogleSheets(Map<String, dynamic> data) async {
+    try {
+      await http.post(
+        Uri.parse(_googleScriptUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(data),
+      );
+    } catch (e) {
+      debugPrint('Failed to log to Sheets: $e');
+    }
+  }
+
   Future<void> _showIPAlert(BuildContext context, String ip, Map<String, dynamic> ipData) async {
     bool isClean = ipData['proxy'] == false && ipData['hosting'] == false;
     
+    if (!isClean) {
+      await _logToGoogleSheets({
+        'timestamp': DateTime.now().toString(),
+        'email': emailController.text.trim(),
+        'ip': ip,
+        'country': ipData['country'] ?? 'Unknown',
+        'is_vpn': ipData['proxy'] || ipData['hosting'],
+        'risk_level': 'High'
+      });
+    }
+
     await showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(isClean ? '✅ Clean IP' : '⚠️ Suspicious IP'),
+        title: Text(isClean ? '✅ Clean IP' : '⚠️ Suspicious IP - Logged'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -69,6 +93,7 @@ class _LoginPageState extends State<LoginPage> {
             Text('Country: ${ipData['country'] ?? 'Unknown'}'),
             if (ipData['proxy'] == true) const Text('Proxy: Detected'),
             if (ipData['hosting'] == true) const Text('Hosting/VPN: Detected'),
+            if (!isClean) const Text('\nThis attempt has been logged', style: TextStyle(color: Colors.red)),
           ],
         ),
         actions: [
@@ -89,12 +114,15 @@ class _LoginPageState extends State<LoginPage> {
       final ip = await _getUserIP();
       final ipData = await _checkIP(ip);
       
-      // Step 2: Show IP status popup
+      // Step 2: Show IP status popup (logs if suspicious)
       await _showIPAlert(context, ip, ipData);
       
-      // Step 3: Proceed with encrypted login
-      final encryptedEmail = _caesarEncrypt(emailController.text.trim());
+      // Step 3: Proceed with encrypted login if IP is clean
+      if (ipData['proxy'] == true || ipData['hosting'] == true) {
+        return; // Block login
+      }
       
+      final encryptedEmail = _caesarEncrypt(emailController.text.trim());
       await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: encryptedEmail,
         password: passwordController.text.trim(),
