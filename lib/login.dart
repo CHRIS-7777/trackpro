@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:trackpro/homepage.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -32,16 +34,70 @@ class _LoginPageState extends State<LoginPage> {
     return result;
   }
 
+  Future<String> _getUserIP() async {
+    try {
+      final response = await http.get(Uri.parse('https://api.ipify.org?format=json'));
+      return jsonDecode(response.body)['ip'];
+    } catch (e) {
+      return 'unknown';
+    }
+  }
+
+  Future<Map<String, dynamic>> _checkIP(String ip) async {
+    try {
+      final response = await http.get(
+        Uri.parse('http://ip-api.com/json/$ip?fields=status,message,country,proxy,hosting')
+      );
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {'status': 'fail', 'message': 'API error'};
+    }
+  }
+
+  Future<void> _showIPAlert(BuildContext context, String ip, Map<String, dynamic> ipData) async {
+    bool isClean = ipData['proxy'] == false && ipData['hosting'] == false;
+    
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(isClean ? '✅ Clean IP' : '⚠️ Suspicious IP'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('IP: $ip'),
+            Text('Country: ${ipData['country'] ?? 'Unknown'}'),
+            if (ipData['proxy'] == true) const Text('Proxy: Detected'),
+            if (ipData['hosting'] == true) const Text('Hosting/VPN: Detected'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> login() async {
     setState(() => _isLoading = true);
     
     try {
-      // Encrypt the email before sending to Firebase
+      // Step 1: Get and check IP
+      final ip = await _getUserIP();
+      final ipData = await _checkIP(ip);
+      
+      // Step 2: Show IP status popup
+      await _showIPAlert(context, ip, ipData);
+      
+      // Step 3: Proceed with encrypted login
       final encryptedEmail = _caesarEncrypt(emailController.text.trim());
       
       await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: encryptedEmail, // Use encrypted email
-        password: passwordController.text.trim(), // Password stays original
+        email: encryptedEmail,
+        password: passwordController.text.trim(),
       );
       
       Navigator.pushReplacement(
