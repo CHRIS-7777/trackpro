@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:trackpro/homepage.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -15,9 +17,9 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   bool _isLoading = false;
-  final String _googleScriptUrl = "https://script.google.com/macros/s/AKfycbygy16otxfuyCCn69MVtcbhi8J9iAY7e7_VRvkzpc6WZXQzt1eUB0H9OVjhcjkvfovC5A/exec"; // Replace this
+  final String _googleScriptUrl = "https://script.google.com/macros/s/AKfycbyyPczMYQKcs0T5b73eHpzxRHIYOX6Epx-uwx0AVKlF7KbN1-D0rnucdVxmPSf5zy9p2Q/exec"; // Replace with your deployed URL
 
-  // Caesar cipher encryption
+  // Encryption function
   String _caesarEncrypt(String text, {int shift = 5}) {
     String result = '';
     for (int i = 0; i < text.length; i++) {
@@ -40,6 +42,7 @@ class _LoginPageState extends State<LoginPage> {
       final response = await http.get(Uri.parse('https://api.ipify.org?format=json'));
       return jsonDecode(response.body)['ip'];
     } catch (e) {
+      debugPrint('IP Fetch Error: $e');
       return 'unknown';
     }
   }
@@ -51,32 +54,114 @@ class _LoginPageState extends State<LoginPage> {
       );
       return jsonDecode(response.body);
     } catch (e) {
+      debugPrint('IP Check Error: $e');
       return {'status': 'fail', 'message': 'API error'};
     }
   }
 
-  Future<void> _logToGoogleSheets(Map<String, dynamic> data) async {
-    try {
-      await http.post(
-        Uri.parse(_googleScriptUrl),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(data),
-      );
-    } catch (e) {
-      debugPrint('Failed to log to Sheets: $e');
+Future<bool> _verifySheetAccess() async {
+  try {
+    final testUrl = Uri.parse('$_googleScriptUrl?test=true&timestamp=${DateTime.now().millisecondsSinceEpoch}');
+    
+    final response = await http.get(
+      testUrl,
+      headers: {'Content-Type': 'application/json'},
+    ).timeout(const Duration(seconds: 10));
+    
+    debugPrint('Access check: ${response.statusCode} - ${response.body}');
+    
+    if (response.statusCode == 200) {
+      final json = jsonDecode(response.body);
+      return json['status'] == 'success';
     }
+    return false;
+  } catch (e) {
+    debugPrint('Access check failed: $e');
+    return false;
   }
+}
+
+Future<void> _logToGoogleSheets(Map<String, dynamic> data) async {
+  final fullData = {
+    ...data,
+    'log_source': 'Flutter App',
+    'timestamp': DateTime.now().toIso8601String(),
+  };
+
+  try {
+    debugPrint('Attempting Sheets write: ${fullData.toString()}');
+    
+    final response = await http.post(
+      Uri.parse(_googleScriptUrl),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(fullData),
+    ).timeout(const Duration(seconds: 15));
+
+    debugPrint('Sheets response: ${response.statusCode} - ${response.body}');
+    
+    if (response.statusCode != 200) {
+      throw Exception('Sheets returned ${response.statusCode}');
+    }
+    
+    final json = jsonDecode(response.body);
+    if (json['status'] != 'success') {
+      throw Exception('Sheets error: ${json['message']}');
+    }
+  } catch (e) {
+    debugPrint('Sheets write failed: $e');
+    await _logToFirestore({
+      ...fullData,
+      'error': e.toString(),
+    });
+    
+   
+  }
+}
+Future<void> testSheetsConnection() async {
+  try {
+    final testData = {
+      'email': 'test@example.com',
+      'ip': '1.1.1.1',
+      'country': 'Test Country',
+      'is_vpn': false,
+      'risk_level': 'Low'
+    };
+    
+    await _logToGoogleSheets(testData);
+    
+    debugPrint('✅ Test data sent successfully');
+  } catch (e) {
+    debugPrint('❌ Test failed: $e');
+  }
+}
+
+ Future<void> _logToFirestore(Map<String, dynamic> data) async {
+  try {
+    await FirebaseFirestore.instance.collection('security_logs').add({
+      'timestamp': FieldValue.serverTimestamp(),
+      'email': data['email'],
+      'ip': data['ip'],
+      'country': data['country'],
+      'is_vpn': data['is_vpn'],
+      'risk_level': data['risk_level'],
+      'log_source': 'Firestore Fallback',
+      'error': 'Sheets access denied'
+    });
+    debugPrint('📝 Firestore fallback successful');
+  } catch (e) {
+    debugPrint('‼️ Firestore failed too: $e');
+  }
+}
 
   Future<void> _showIPAlert(BuildContext context, String ip, Map<String, dynamic> ipData) async {
     bool isClean = ipData['proxy'] == false && ipData['hosting'] == false;
     
     if (!isClean) {
       await _logToGoogleSheets({
-        'timestamp': DateTime.now().toString(),
         'email': emailController.text.trim(),
         'ip': ip,
         'country': ipData['country'] ?? 'Unknown',
-        'is_vpn': ipData['proxy'] || ipData['hosting'],
+        'is_vpn': true,
         'risk_level': 'High'
       });
     }
@@ -93,7 +178,8 @@ class _LoginPageState extends State<LoginPage> {
             Text('Country: ${ipData['country'] ?? 'Unknown'}'),
             if (ipData['proxy'] == true) const Text('Proxy: Detected'),
             if (ipData['hosting'] == true) const Text('Hosting/VPN: Detected'),
-            if (!isClean) const Text('\nThis attempt has been logged', style: TextStyle(color: Colors.red)),
+            if (!isClean) const Text('\nThis attempt has been logged', 
+                style: TextStyle(color: Colors.red)),
           ],
         ),
         actions: [
@@ -117,11 +203,12 @@ class _LoginPageState extends State<LoginPage> {
       // Step 2: Show IP status popup (logs if suspicious)
       await _showIPAlert(context, ip, ipData);
       
-      // Step 3: Proceed with encrypted login if IP is clean
+      // Step 3: Block if VPN detected
       if (ipData['proxy'] == true || ipData['hosting'] == true) {
-        return; // Block login
+        return; 
       }
       
+      // Step 4: Proceed with encrypted login
       final encryptedEmail = _caesarEncrypt(emailController.text.trim());
       await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: encryptedEmail,
