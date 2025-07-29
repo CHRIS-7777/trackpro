@@ -270,7 +270,7 @@ class _DashboardPageState extends State<DashboardPage> {
             ),
             floatingActionButton: FloatingActionButton(
     backgroundColor: Colors.greenAccent,
-    child: const Icon(Icons.add, color: Colors.black),
+    child: const Icon(Icons.person_4_rounded, color: Colors.black),
    onPressed: () {
                     Navigator.pushNamed(context,'/chat');
                   },
