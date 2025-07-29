@@ -268,6 +268,14 @@ class _DashboardPageState extends State<DashboardPage> {
               platformData: platformData,
               onRefresh: _refreshAllPlatforms,
             ),
+            floatingActionButton: FloatingActionButton(
+    backgroundColor: Colors.greenAccent,
+    child: const Icon(Icons.add, color: Colors.black),
+   onPressed: () {
+                    Navigator.pushNamed(context,'/chat');
+                  },
+  ),
+  floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: 0,
         backgroundColor: Colors.black,
