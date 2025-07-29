@@ -62,7 +62,7 @@ class MyApp extends StatelessWidget {
         '/create-resume': (context) => const ResumeGeneratorPage(),
         '/stats': (context) => const PlatformStatsPage(),
         '/track': (context) => const RoadmapTrackerPage(),
-        '/chat': (context) => const EducationChatbotScreen(),
+        '/chat': (context) => const LearningAssistantPage(),
       },
     );
   }

@@ -1,291 +1,322 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_gemini/flutter_gemini.dart';
 
-class EducationChatbotScreen extends StatefulWidget {
-  const EducationChatbotScreen({super.key});
+class LearningAssistantPage extends StatefulWidget {
+  const LearningAssistantPage({super.key});
 
   @override
-  State<EducationChatbotScreen> createState() => _EducationChatbotScreenState();
+  State<LearningAssistantPage> createState() => _LearningAssistantPageState();
 }
 
-class _EducationChatbotScreenState extends State<EducationChatbotScreen> {
+class _LearningAssistantPageState extends State<LearningAssistantPage> {
   final TextEditingController _messageController = TextEditingController();
-  final ScrollController _scrollController = ScrollController();
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final List<Map<String, dynamic>> _messages = [];
+  final List<ChatMessage> _messages = [];
   bool _isLoading = false;
+  bool _isTyping = false;
+
+  // Predefined responses
+  static const Map<String, String> predefinedResponses = {
+    'thank': 'You\'re welcome! Is there anything else I can help you with?',
+    'hello': 'Hello! How can I assist you with your learning today?',
+    'hi': 'Hi there! What would you like to learn about?',
+    'help': 'I can help with:\n- Explaining concepts\n- Suggesting resources\n- Answering questions\nWhat do you need?',
+  };
 
   @override
   void initState() {
     super.initState();
-    _initializeChatbot();
+    // Add welcome message
+    _messages.add(ChatMessage(
+      text: 'Welcome to your Learning Assistant! How can I help you today?',
+      isUser: false,
+      timestamp: DateTime.now(),
+    ));
+  }
+
+  void _handlePredefinedMessage(String text) {
+    final lowerText = text.toLowerCase();
+    for (var entry in predefinedResponses.entries) {
+      if (lowerText.contains(entry.key)) {
+        _addBotMessage(entry.value);
+        return;
+      }
+    }
+    _sendToGemini(text);
+  }
+
+  void _addBotMessage(String text) {
+    // Remove markdown formatting and limit response length
+    final cleanText = text
+        .replaceAll('**', '')
+        .replaceAll('*', '')
+        .replaceAll('#', '')
+        .replaceAll('```', '');
+    
+    final shortenedText = cleanText.length > 300 
+        ? '${cleanText.substring(0, 300)}...' 
+        : cleanText;
+
+    setState(() {
+      _messages.add(ChatMessage(
+        text: shortenedText,
+        isUser: false,
+        timestamp: DateTime.now(),
+      ));
+      _isTyping = false;
+    });
+    _scrollToBottom();
+  }
+
+  void _addUserMessage(String text) {
+    setState(() {
+      _messages.add(ChatMessage(
+        text: text,
+        isUser: true,
+        timestamp: DateTime.now(),
+      ));
+    });
+    _scrollToBottom();
+  }
+
+  Future<void> _sendToGemini(String prompt) async {
+    setState(() => _isTyping = true);
+    
+    try {
+      // Request concise responses from Gemini
+      final result = await Gemini.instance.text(
+        "Provide a concise response to: $prompt. "
+        "Keep it under 300 characters and avoid markdown formatting."
+      );
+      _addBotMessage(result?.output ?? "I couldn't generate a response. Please try again.");
+    } catch (e) {
+      _addBotMessage("Sorry, I encountered an error. Please try again later.");
+    }
   }
 
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-        );
-      }
-    });
-  }
-
-  Future<void> _initializeChatbot() async {
-    final user = _auth.currentUser;
-    if (user != null) {
-      await _firestore.collection('chat_sessions').doc(user.uid).set({
-        'createdAt': FieldValue.serverTimestamp(),
-        'lastActive': FieldValue.serverTimestamp(),
-        'context': 'general',
-      }, SetOptions(merge: true));
-    }
-  }
-
-  Future<void> _sendMessage() async {
-    if (_messageController.text.trim().isEmpty) return;
-
-    final user = _auth.currentUser;
-    if (user == null) return;
-
-    setState(() => _isLoading = true);
-    final message = _messageController.text;
-    _messageController.clear();
-
-    // Add user message to UI immediately
-    setState(() {
-      _messages.add({
-        'text': message,
-        'isUser': true,
-        'timestamp': DateTime.now(),
-      });
-    });
-    _scrollToBottom();
-
-    // Save message to Firestore
-    await _firestore.collection('chat_sessions')
-      .doc(user.uid)
-      .collection('messages')
-      .add({
-        'text': message,
-        'isUser': true,
-        'timestamp': FieldValue.serverTimestamp(),
-      });
-
-    // Get bot response
-    final response = await _generateResponse(message);
-    
-    // Add bot response to UI
-    setState(() {
-      _messages.add({
-        'text': response,
-        'isUser': false,
-        'timestamp': DateTime.now(),
-      });
-      _isLoading = false;
-    });
-    _scrollToBottom();
-
-    // Save bot response to Firestore
-    await _firestore.collection('chat_sessions')
-      .doc(user.uid)
-      .collection('messages')
-      .add({
-        'text': response,
-        'isUser': false,
-        'timestamp': FieldValue.serverTimestamp(),
-      });
-  }
-
-  Future<String> _generateResponse(String message) async {
-    // First check if the message is empty or not a question
-    if (message.trim().isEmpty || !message.endsWith('?')) {
-      return "Please ask a complete question ending with a question mark (?)";
-    }
-
-    // Simple local responses before calling AI
-    final lowerMessage = message.toLowerCase();
-    if (lowerMessage.contains('hello') || lowerMessage.contains('hi')) {
-      return "Hello! I'm your education assistant. Ask me about science, math, or technology topics.";
-    }
-    
-    if (lowerMessage.contains('thank')) {
-      return "You're welcome! Is there another academic topic you'd like to explore?";
-    }
-
-    // Check if question is educational (local check first)
-    const educationalKeywords = [
-      'science', 'math', 'physics', 'chemistry', 'biology',
-      'calculate', 'formula', 'theory', 'programming', 'engineering',
-      'computer', 'technology', 'learn', 'teach', 'education'
-    ];
-
-    final isEducational = educationalKeywords.any((word) => lowerMessage.contains(word));
-    
-    if (!isEducational) {
-      return "I specialize in academic topics. Please ask about science, math, or technology.";
-    }
-
-    // Only then call the AI API
-    try {
-      final response = await Gemini.instance.text(
-        """
-        You are an AI educational assistant. Provide a concise 1-2 sentence answer 
-        to this academic question. If it's not educational, say:
-        "I specialize in science and math topics."
-        
-        Question: $message
-        """
+      final scrollController = PrimaryScrollController.of(context);
+      scrollController?.animateTo(
+        scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
       );
-
-      debugPrint('AI Response: ${response?.content?.parts?.join(' ')}');
-      
-      return response?.content?.parts?.join(' ') ?? 
-             "I couldn't generate a response. Please try again.";
-    } catch (e) {
-      debugPrint('AI Error: $e');
-      return "I'm having technical difficulties. Please try again later.";
-    }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.black,
       appBar: AppBar(
-        title: const Text('Education Assistant'),
-        backgroundColor: const Color(0xFF0D1B2A),
+        title: const Text('Learning Assistant', 
+          style: TextStyle(color: Colors.white)),
+        centerTitle: true,
+        backgroundColor: Colors.black,
         elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.greenAccent),
       ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFF0D1B2A), Colors.black],
-          ),
-        ),
-        child: Column(
-          children: [
-            Expanded(
+      body: Column(
+        children: [
+          Expanded(
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Color(0xFF111111),
+                    Color(0xFF000000),
+                  ],
+                ),
+              ),
               child: ListView.builder(
-                controller: _scrollController,
                 padding: const EdgeInsets.all(16),
                 itemCount: _messages.length,
                 itemBuilder: (context, index) {
                   final message = _messages[index];
-                  return ChatMessage(
-                    text: message['text'],
-                    isUser: message['isUser'],
+                  return ChatBubble(
+                    message: message,
+                    isLoading: _isTyping && index == _messages.length - 1 && !message.isUser,
                   );
                 },
               ),
             ),
-            if (_isLoading)
-              const Padding(
-                padding: EdgeInsets.all(8.0),
-                child: CircularProgressIndicator(),
-              ),
-            _buildMessageInput(),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMessageInput() {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Row(
-        children: [
-          Expanded(
-            child: TextField(
-              controller: _messageController,
-              style: const TextStyle(color: Colors.white),
-              decoration: InputDecoration(
-                hintText: 'Ask about any educational topic...',
-                hintStyle: const TextStyle(color: Colors.white54),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(25),
-                  borderSide: BorderSide.none,
-                ),
-                filled: true,
-                fillColor: Colors.white.withOpacity(0.1),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 15,
+          ),
+          if (_isLoading)
+            const LinearProgressIndicator(
+              color: Colors.greenAccent,
+              backgroundColor: Colors.black,
+            )
+          else
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.grey[900],
+                border: Border(
+                  top: BorderSide(
+                    color: Colors.grey[800]!,
+                    width: 1,
+                  ),
                 ),
               ),
-              onSubmitted: (_) => _sendMessage(),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _messageController,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
+                        hintText: "Type your question...",
+                        hintStyle: TextStyle(color: Colors.grey[500]),
+                        filled: true,
+                        fillColor: Colors.grey[800],
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(24),
+                          borderSide: BorderSide.none,
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 16,
+                        ),
+                        suffixIcon: IconButton(
+                          icon: const Icon(Icons.send, color: Colors.greenAccent),
+                          onPressed: () {
+                            final text = _messageController.text.trim();
+                            if (text.isNotEmpty) {
+                              _addUserMessage(text);
+                              _handlePredefinedMessage(text);
+                              _messageController.clear();
+                            }
+                          },
+                        ),
+                      ),
+                      onSubmitted: (text) {
+                        if (text.trim().isNotEmpty) {
+                          _addUserMessage(text);
+                          _handlePredefinedMessage(text);
+                          _messageController.clear();
+                        }
+                      },
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(width: 8),
-          CircleAvatar(
-            backgroundColor: const Color(0xFF00B78C),
-            child: IconButton(
-              icon: const Icon(Icons.send, color: Colors.white),
-              onPressed: _sendMessage,
-            ),
-          ),
         ],
       ),
     );
   }
-
-  @override
-  void dispose() {
-    _messageController.dispose();
-    _scrollController.dispose();
-    super.dispose();
-  }
 }
 
-class ChatMessage extends StatelessWidget {
+class ChatMessage {
   final String text;
   final bool isUser;
+  final DateTime timestamp;
 
-  const ChatMessage({
-    super.key,
+  ChatMessage({
     required this.text,
     required this.isUser,
+    required this.timestamp,
+  });
+}
+
+class ChatBubble extends StatelessWidget {
+  final ChatMessage message;
+  final bool isLoading;
+
+  const ChatBubble({
+    super.key,
+    required this.message,
+    this.isLoading = false,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8),
+      margin: const EdgeInsets.only(bottom: 12),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment:
-            isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+            message.isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
         children: [
+          if (!message.isUser)
+            CircleAvatar(
+              backgroundColor: Colors.grey[900],
+              child: const Icon(Icons.school, color: Colors.greenAccent),
+            ),
+          const SizedBox(width: 8),
           Flexible(
             child: Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: isUser
-                    ? const Color(0xFF00B78C)
-                    : Colors.grey.shade800,
+                color: message.isUser 
+                    ? Colors.greenAccent.withOpacity(0.9)
+                    : Colors.grey[800],
                 borderRadius: BorderRadius.only(
-                  topLeft: const Radius.circular(12),
-                  topRight: const Radius.circular(12),
-                  bottomLeft:
-                      Radius.circular(isUser ? 12 : 0),
-                  bottomRight:
-                      Radius.circular(isUser ? 0 : 12),
+                  topLeft: const Radius.circular(18),
+                  topRight: const Radius.circular(18),
+                  bottomLeft: Radius.circular(message.isUser ? 18 : 0),
+                  bottomRight: Radius.circular(message.isUser ? 0 : 18),
                 ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.3),
+                    blurRadius: 6,
+                    offset: const Offset(0, 3),), 
+                ],
               ),
-              child: Text(
-                text,
-                style: const TextStyle(color: Colors.white),
-              ),
+              child: isLoading
+                  ? const TypingIndicator()
+                  : Text(
+                      message.text,
+                      style: TextStyle(
+                        color: message.isUser ? Colors.black : Colors.white,
+                        fontSize: 16,
+                      ),
+                    ),
             ),
           ),
+          if (message.isUser) const SizedBox(width: 8),
+          if (message.isUser)
+            CircleAvatar(
+              backgroundColor: Colors.grey[900],
+              child: const Icon(Icons.person, color: Colors.greenAccent),
+            ),
         ],
       ),
+    );
+  }
+}
+
+class TypingIndicator extends StatelessWidget {
+  const TypingIndicator({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 50,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _buildDot(0),
+          _buildDot(1),
+          _buildDot(2),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDot(int index) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      height: 8,
+      width: 8,
+      decoration: BoxDecoration(
+        color: Colors.greenAccent,
+        shape: BoxShape.circle,
+      ),
+      margin: const EdgeInsets.all(2),
     );
   }
 }
