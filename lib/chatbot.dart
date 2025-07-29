@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_gemini/flutter_gemini.dart';
 
 class EducationChatbotScreen extends StatefulWidget {
   const EducationChatbotScreen({super.key});
@@ -64,7 +65,7 @@ class _EducationChatbotScreenState extends State<EducationChatbotScreen> {
         'timestamp': FieldValue.serverTimestamp(),
       });
 
-    // Get bot response
+    // Get bot response using the globally initialized Gemini instance
     final response = await _generateResponse(message);
     
     // Add bot response to UI
@@ -90,18 +91,35 @@ class _EducationChatbotScreenState extends State<EducationChatbotScreen> {
   }
 
   Future<String> _generateResponse(String message) async {
-    // Simple response logic - replace with your NLP integration
-    await Future.delayed(const Duration(seconds: 1)); // Simulate processing
-    
-    if (message.toLowerCase().contains('math')) {
-      return "I can help with math concepts. Are you asking about algebra, calculus, or another area?";
-    } else if (message.toLowerCase().contains('science')) {
-      return "Science is fascinating! Are you interested in physics, chemistry, or biology?";
-    } else if (message.toLowerCase().contains('hello') || 
-               message.toLowerCase().contains('hi')) {
-      return "Hello! I'm your education assistant. How can I help you today?";
-    } else {
-      return "I'm here to help with educational topics. Could you please clarify your question?";
+    try {
+      // Using the globally initialized Gemini instance
+      final response = await Gemini.instance.text(
+        """
+        You are an AI educational assistant. Only answer questions related to:
+        - Science (Physics, Chemistry, Biology)
+        - Mathematics
+        - Programming and Computer Science
+        - Engineering concepts
+        - Academic research
+        
+        If the question is not educational, politely respond:
+        "I specialize in academic topics. Please ask about science, math, or technology."
+        
+        Current question: $message
+        """
+      );
+
+      debugPrint('Gemini response: ${response?.content?.parts?.join(' ')}');
+
+      // Handle the response
+      if (response != null && response.content != null) {
+        return response.content!.parts?.join(' ') ?? 
+               "I couldn't generate a response. Please try again.";
+      }
+      return "I didn't understand that. Could you rephrase your question?";
+    } catch (e) {
+      debugPrint('Error with Gemini API: $e');
+      return "I'm having trouble connecting to the knowledge base. Please try again later.";
     }
   }
 
