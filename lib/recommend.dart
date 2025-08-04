@@ -91,7 +91,7 @@ class _RecommendPageState extends State<RecommendPage> {
     } catch (e) {
       print("❌ Error fetching projects: $e");
       setState(() {
-        error = "Error loading projects. Showing sample data.";
+    
         allProjects = sampleProjects;
         filteredProjects = sampleProjects;
         isLoading = false;
